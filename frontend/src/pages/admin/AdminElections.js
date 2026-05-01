@@ -12,7 +12,7 @@ function AdminElections() {
     startDate: '',
     endDate: '',
     status: 'upcoming',
-    type: 'both' // Default to both
+    type: 'both'
   });
 
   useEffect(() => {
@@ -130,8 +130,8 @@ function AdminElections() {
               <label>Election Type</label>
               <select name="type" className="form-control" value={formData.type} onChange={handleChange}>
                 <option value="party">Party Election</option>
-                <option value="candidate">Candidate Election</option>
-                <option value="both">Both (Party & Candidate)</option>
+                <option value="candidate">Independent Candidate Election</option>
+                <option value="both">Both (Party & Independent Candidate)</option>
               </select>
             </div>
           </div>
@@ -172,8 +172,8 @@ function AdminElections() {
                     <td>{new Date(election.endDate).toLocaleString()}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button onClick={() => handleEdit(election)} style={{ color: '#4f46e5', background: 'none', border: 'none', fontWeight: 600 }}>Edit</button>
-                        <button onClick={() => handleDelete(election._id)} style={{ color: '#ef4444', background: 'none', border: 'none', fontWeight: 600 }}>Delete</button>
+                        <button onClick={() => handleEdit(election)} style={{ color: '#4f46e5', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => handleDelete(election._id)} style={{ color: '#ef4444', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Delete</button>
                       </div>
                     </td>
                   </tr>

@@ -33,7 +33,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/">🗳️ VoteSystem</Link>
+        <Link to={user?.role === 'admin' ? '/admin/system' : '/'}>🗳️ VoteSystem</Link>
       </div>
       <div className="navbar-links">
         {user ? (
@@ -43,24 +43,25 @@ const Navbar = () => {
                 <Link to="/admin">Dashboard</Link>
                 <Link to="/admin/parties">Parties</Link>
                 <Link to="/admin/elections">Elections</Link>
-                <Link to="/admin/candidates">Candidates</Link>
+                <Link to="/admin/candidates">Independent Candidates</Link>
                 
                 {/* Voter Stats Navigation Item */}
-                <div className="nav-stats" style={{ 
+                <Link to="/admin/voters" className="nav-stats" style={{ 
                   display: 'flex', gap: '1rem', background: '#f1f5f9', 
                   padding: '0.25rem 1rem', borderRadius: '20px', fontSize: '0.75rem',
-                  marginLeft: '1rem', border: '1px solid #e2e8f0'
+                  marginLeft: '1rem', border: '1px solid #e2e8f0', textDecoration: 'none',
+                  color: 'inherit', cursor: 'pointer'
                 }}>
                   <div title="Registered Voters">👥 {voterStats.total}</div>
                   <div style={{ color: '#cbd5e1' }}>|</div>
                   <div title="Voted Voters" style={{ color: '#22c55e', fontWeight: 700 }}>✅ {voterStats.voted}</div>
-                </div>
+                </Link>
               </>
             )}
             {user.role === 'voter' && (
               <>
                 <Link to="/parties">Political Parties</Link>
-                <Link to="/candidates">Candidates</Link>
+                <Link to="/candidates">Independent Candidates</Link>
               </>
             )}
             <span className="navbar-user">👤 {user.name}</span>

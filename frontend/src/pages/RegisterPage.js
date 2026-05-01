@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { registerUser } from '../api/auth';
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import heroImg from '../assets/hero-bg.jpg';
 import './AuthPage.css';
 
 const RegisterPage = () => {
@@ -11,8 +12,9 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [phoneFirstDigit, setPhoneFirstDigit] = useState('9');
   const [phoneRemaining, setPhoneRemaining] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
-    firstName: '', lastName: '', email: '', password: '',
+    firstName: '', lastName: '', email: '', password: '', confirmPassword: '',
     age: '', nationalId: '', profession: '',
     nationality: 'Ethiopian', region: '', subCity: '', kebele: ''
   });
@@ -26,17 +28,22 @@ const RegisterPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const lettersOnly = ['firstName', 'lastName', 'nationality', 'profession'];
+    
+    // Letters only fields
+    const lettersOnly = ['firstName', 'lastName', 'subCity', 'profession', 'nationality'];
     if (lettersOnly.includes(name) && value !== '' && !/^[A-Za-z ]+$/.test(value)) return;
-    const numbersOnly = ['age', 'nationalId'];
+    
+    // Numbers only fields
+    const numbersOnly = ['age', 'nationalId', 'kebele'];
     if (numbersOnly.includes(name) && value !== '' && !/^\d+$/.test(value)) return;
+
     setForm({ ...form, [name]: value });
   };
 
   const handlePhoneRemainingChange = (e) => {
     const value = e.target.value;
     if (value !== '' && !/^\d+$/.test(value)) return;
-    if (value.length > 8) return; // 1 selected + 8 entered = 9 total
+    if (value.length > 8) return;
     setPhoneRemaining(value);
   };
 
@@ -44,25 +51,38 @@ const RegisterPage = () => {
     e.preventDefault();
     if (parseInt(form.age) < 18) return toast.error('You must be 18 years or older to register');
     
-    // Phone validation
     const fullPhone = `+251${phoneFirstDigit}${phoneRemaining}`;
     if (phoneRemaining.length !== 8) {
       return toast.error('Phone number must contain exactly 9 digits in total.');
     }
 
-    // National ID validation
     if (form.nationalId.length < 16) {
       return toast.error('National ID must be at least 16 digits');
     }
 
-    if (form.profession.toLowerCase() === 'soldier') return toast.error('Soldiers are not allowed to register');
+    if (form.firstName.length < 2 || form.lastName.length < 2) {
+      return toast.error('First and Last names must be at least 2 characters long');
+    }
+
+    // Password strength: Min 8, at least 3 non-numeric
+    if (form.password.length < 8) {
+      return toast.error('Password must be at least 8 characters long');
+    }
+    const nonNumericCount = (form.password.match(/[^0-9]/g) || []).length;
+    if (nonNumericCount < 3) {
+      return toast.error('Password must contain at least 3 non-numeric characters (letters or special characters)');
+    }
+
+    if (form.password !== form.confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
 
     setLoading(true);
     try {
-      const res = await registerUser({ ...form, phone: fullPhone });
+      const res = await api.post('/auth/register', { ...form, phone: fullPhone });
       login(res.data.user, res.data.token);
       toast.success('Registration successful!');
-      navigate('/');
+      navigate('/elections');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -70,78 +90,182 @@ const RegisterPage = () => {
     }
   };
 
+  const inputStyle = { 
+    background: 'rgba(255,255,255,0.2)', 
+    color: 'white', 
+    border: '1px solid rgba(255,255,255,0.4)',
+    padding: '0.75rem',
+    fontWeight: 500
+  };
+
+  const labelStyle = { color: 'white', fontSize: '0.9rem', marginBottom: '0.4rem', fontWeight: 600, textShadow: '0 1px 3px rgba(0,0,0,0.5)' };
+
   return (
-    <div className="auth-container" style={{ padding: '2rem 0' }}>
-      <div className="auth-card" style={{ maxWidth: '800px', width: '95%' }}>
-        <h2>Voter Registration</h2>
-        <p style={{ color: '#64748b', marginBottom: '2rem' }}>Please provide your official information to register for the voting system.</p>
-        
+    <div className="auth-container" style={{ 
+      position: 'relative',
+      overflow: 'hidden',
+      minHeight: '120vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '4rem 1rem'
+    }}>
+      {/* Background Image Layer */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundImage: `url(${heroImg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        filter: 'brightness(1.1) contrast(1.1)',
+        zIndex: -2
+      }}></div>
+      
+      {/* Minimal Overlay */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(15, 23, 42, 0.5)',
+        zIndex: -1
+      }}></div>
+
+      <div className="auth-card" style={{ 
+        maxWidth: '850px', 
+        width: '95%',
+        backdropFilter: 'blur(20px)', 
+        background: 'rgba(255,255,255,0.1)', 
+        border: '1px solid rgba(255,255,255,0.4)',
+        padding: '3rem',
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
+      }}>
+        <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '1rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Voter Registration</h2>
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label>First Name</label><input type="text" name="firstName" value={form.firstName} onChange={handleChange} required /></div>
-            <div className="form-group"><label>Last Name</label><input type="text" name="lastName" value={form.lastName} onChange={handleChange} required /></div>
+            <div className="form-group"><label style={labelStyle}>First Name</label><input type="text" name="firstName" value={form.firstName} onChange={handleChange} required style={inputStyle} /></div>
+            <div className="form-group"><label style={labelStyle}>Last Name</label><input type="text" name="lastName" value={form.lastName} onChange={handleChange} required style={inputStyle} /></div>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <label style={labelStyle}>Email Address</label>
+            <input type="email" name="email" value={form.email} onChange={handleChange} required style={{ ...inputStyle, width: '100%' }} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="form-group" style={{ position: 'relative' }}>
+              <label style={labelStyle}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password" 
+                  value={form.password} 
+                  onChange={handleChange} 
+                  required 
+                  style={{ ...inputStyle, width: '100%', paddingRight: '3rem' }} 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '1.2rem'
+                  }}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+            </div>
+            <div className="form-group" style={{ position: 'relative' }}>
+              <label style={labelStyle}>Confirm Password</label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="confirmPassword" 
+                  value={form.confirmPassword} 
+                  onChange={handleChange} 
+                  required 
+                  style={{ ...inputStyle, width: '100%', paddingRight: '3rem' }} 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '1.2rem'
+                  }}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label>Email Address</label><input type="email" name="email" value={form.email} onChange={handleChange} required /></div>
-            <div className="form-group"><label>Password</label><input type="password" name="password" value={form.password} onChange={handleChange} required minLength={6} /></div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label>Age (Must be 18+)</label><input type="text" name="age" value={form.age} onChange={handleChange} required /></div>
-            <div className="form-group"><label>Nationality</label><input type="text" name="nationality" value={form.nationality} onChange={handleChange} required /></div>
+            <div className="form-group"><label style={labelStyle}>Age (Must be 18+)</label><input type="text" name="age" value={form.age} onChange={handleChange} required style={inputStyle} /></div>
+            <div className="form-group"><label style={labelStyle}>Nationality</label><input type="text" name="nationality" value={form.nationality} onChange={handleChange} required style={inputStyle} /></div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div className="form-group">
-              <label>Phone Number <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#64748b' }}>(The length must be only 9 digits.)</span></label>
+              <label style={labelStyle}>Phone Number <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#fbbf24' }}>(Exactly 9 digits)</span></label>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <span style={{ fontWeight: 600, color: '#64748b' }}>+251</span>
+                <span style={{ fontWeight: 800, color: 'white', background: 'rgba(255,255,255,0.2)', padding: '0.75rem', borderRadius: '8px' }}>+251</span>
                 <select 
                   value={phoneFirstDigit} 
                   onChange={(e) => setPhoneFirstDigit(e.target.value)}
-                  style={{ width: '60px', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px', background: 'white' }}
+                  style={{ width: '70px', padding: '0.75rem', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '8px', background: 'rgba(255,255,255,0.2)', color: 'white' }}
                 >
                   <option value="9">9</option>
                   <option value="7">7</option>
                 </select>
-                <input 
-                  type="text" 
-                  value={phoneRemaining} 
-                  onChange={handlePhoneRemainingChange} 
-                  placeholder="Enter 8 digits"
-                  required 
-                  style={{ flex: 1 }}
-                />
+                <input type="text" value={phoneRemaining} onChange={handlePhoneRemainingChange} placeholder="Enter 8 digits" required style={{ ...inputStyle, flex: 1 }} />
               </div>
             </div>
             <div className="form-group">
-              <label>National ID (FAN) <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#64748b' }}>(The length must be ≥ 16 digits.)</span></label>
-              <input type="text" name="nationalId" value={form.nationalId} onChange={handleChange} required minLength="16" />
+              <label style={labelStyle}>National ID (FAN) <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#fbbf24' }}>(≥ 16 digits)</span></label>
+              <input type="text" name="nationalId" value={form.nationalId} onChange={handleChange} required minLength="16" style={inputStyle} />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label>Profession (Job)</label><input type="text" name="profession" value={form.profession} onChange={handleChange} required placeholder="No Soldiers allowed" /></div>
             <div className="form-group">
-              <label>Region</label>
-              <select name="region" value={form.region} onChange={handleChange} required className="form-control" style={{ width: '100%', padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                <option value="">Select Region</option>
-                {regions.map(r => <option key={r} value={r}>{r}</option>)}
+              <label style={labelStyle}>Profession <span style={{ fontSize: '0.7rem', fontWeight: 400, opacity: 0.8 }}>(not soldier)</span></label>
+              <input type="text" name="profession" value={form.profession} onChange={handleChange} required style={inputStyle} />
+            </div>
+            <div className="form-group">
+              <label style={labelStyle}>Region</label>
+              <select name="region" value={form.region} onChange={handleChange} required style={{ ...inputStyle, width: '100%', color: '#0f172a' }}>
+                <option value="" style={{ color: '#0f172a' }}>Select Region</option>
+                {regions.map(r => <option key={r} value={r} style={{ color: '#0f172a' }}>{r}</option>)}
               </select>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label>Wereda / Sub-City</label><input type="text" name="subCity" value={form.subCity} onChange={handleChange} required /></div>
-            <div className="form-group"><label>Kebele</label><input type="text" name="kebele" value={form.kebele} onChange={handleChange} required /></div>
+            <div className="form-group"><label style={labelStyle}>Wereda / Sub-City</label><input type="text" name="subCity" value={form.subCity} onChange={handleChange} required style={inputStyle} /></div>
+            <div className="form-group"><label style={labelStyle}>Kebele</label><input type="text" name="kebele" value={form.kebele} onChange={handleChange} required style={inputStyle} /></div>
           </div>
 
-          <button type="submit" className="btn-submit" disabled={loading} style={{ marginTop: '2rem', width: '100%', padding: '1rem', fontSize: '1.1rem' }}>
+          <button type="submit" className="btn-submit" disabled={loading} style={{ marginTop: '2rem', width: '100%', padding: '1.25rem', fontSize: '1.1rem', fontWeight: 800 }}>
             {loading ? 'Processing...' : 'Register as Voter'}
           </button>
         </form>
-        <p className="auth-switch">Already have an account? <Link to="/login">Login</Link></p>
+        <p className="auth-switch" style={{ color: 'white', textAlign: 'center', marginTop: '2rem' }}>Already have an account? <Link to="/login" style={{ color: '#22c55e', fontWeight: 800 }}>Login</Link></p>
       </div>
     </div>
   );

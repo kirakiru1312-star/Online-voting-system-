@@ -20,6 +20,10 @@ import AdminParties from './pages/admin/AdminParties';
 import AdminElections from './pages/admin/AdminElections';
 import AdminCandidates from './pages/admin/AdminCandidates';
 import AdminTally from './pages/admin/AdminTally';
+import AdminVoters from './pages/admin/AdminVoters';
+import AdminAuditLogs from './pages/admin/AdminAuditLogs';
+import AdminVoteSystem from './pages/admin/AdminVoteSystem';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   return (
@@ -28,12 +32,13 @@ function App() {
         <Navbar />
         <Routes>
           {/* Public */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Voter protected */}
           <Route element={<PrivateRoute />}>
-            <Route path="/" element={<ElectionsPage />} />
+            <Route path="/elections" element={<ElectionsPage />} />
             <Route path="/parties" element={<PartiesPage />} />
             <Route path="/candidates" element={<CandidatesPage />} />
             <Route path="/elections/:id" element={<ElectionDetailPage />} />
@@ -47,6 +52,9 @@ function App() {
             <Route path="/admin/elections" element={<AdminElections />} />
             <Route path="/admin/candidates" element={<AdminCandidates />} />
             <Route path="/admin/tally" element={<AdminTally />} />
+            <Route path="/admin/voters" element={<AdminVoters />} />
+            <Route path="/admin/logs" element={<AdminAuditLogs />} />
+            <Route path="/admin/system" element={<AdminVoteSystem />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

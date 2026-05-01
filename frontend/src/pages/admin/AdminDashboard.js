@@ -7,16 +7,14 @@ function AdminDashboard() {
     parties: 0, elections: 0, candidates: 0,
     totalVoters: 0, totalVoted: 0
   });
-  const [logs, setLogs] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [p, e, c, l, s] = await Promise.all([
+        const [p, e, c, s] = await Promise.all([
           api.get('/parties'),
           api.get('/elections'),
           api.get('/candidates'),
-          api.get('/admin/logs'),
           api.get('/admin/stats')
         ]);
         setStats({
@@ -26,7 +24,6 @@ function AdminDashboard() {
           totalVoters: s.data.totalVoters,
           totalVoted: s.data.totalVoted
         });
-        setLogs(l.data);
       } catch (err) {
         console.error('Failed to fetch dashboard data');
       }
@@ -36,94 +33,105 @@ function AdminDashboard() {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
-        <div>
-          <h1>Admin Dashboard</h1>
-          <p style={{ color: '#64748b' }}>Welcome back! Here is an overview of the system.</p>
-        </div>
-        <div className="card" style={{ padding: '0.75rem 1.5rem', display: 'flex', gap: '2rem', background: '#f8fafc', border: '1px solid var(--primary)' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Registered Voters</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>{stats.totalVoters}</div>
+      <div style={{ marginBottom: '3rem' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Admin Dashboard</h1>
+        <p style={{ color: '#64748b', fontSize: '1.1rem' }}>Welcome back, Admin. System monitoring and election controls are active.</p>
+      </div>
+
+      {/* Top Metrics Bar */}
+      <div className="card" style={{ 
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
+        color: 'white', border: 'none', marginBottom: '2rem', padding: '1.5rem 2.5rem' 
+      }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
+          <div>
+            <div style={{ fontSize: '0.85rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>Total Registered</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{stats.totalVoters}</div>
           </div>
-          <div style={{ width: '1px', background: '#e2e8f0' }}></div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Voted</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#22c55e' }}>{stats.totalVoted}</div>
+          <div>
+            <div style={{ fontSize: '0.85rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>Votes Cast</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#22c55e' }}>{stats.totalVoted}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.85rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>Participation Rate</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#38bdf8' }}>
+              {stats.totalVoters > 0 ? ((stats.totalVoted / stats.totalVoters) * 100).toFixed(1) : 0}%
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: '2.5rem' }}>🏳️</span>
-          <h3 style={{ marginTop: '1rem' }}>{stats.parties}</h3>
-          <p style={{ color: '#64748b' }}>Political Parties</p>
-        </div>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: '2.5rem' }}>🗳️</span>
-          <h3 style={{ marginTop: '1rem' }}>{stats.elections}</h3>
-          <p style={{ color: '#64748b' }}>Elections</p>
-        </div>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: '2.5rem' }}>👥</span>
-          <h3 style={{ marginTop: '1rem' }}>{stats.candidates}</h3>
-          <p style={{ color: '#64748b' }}>Candidates</p>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
-        <div>
-          <h2>Security Activity Log</h2>
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ background: '#f8fafc' }}>
-                <tr>
-                  <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', color: '#64748b' }}>Voter</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', color: '#64748b' }}>Action</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', color: '#64748b' }}>Status</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.8rem', color: '#64748b' }}>Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log._id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '1rem' }}>
-                      <div style={{ fontWeight: 600 }}>{log.voter?.name || 'Guest'}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{log.ipAddress}</div>
-                    </td>
-                    <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{log.voteType} {log.action}</td>
-                    <td style={{ padding: '1rem' }}>
-                      <span style={{ 
-                        padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800,
-                        background: log.action === 'success' ? '#dcfce7' : '#fee2e2',
-                        color: log.action === 'success' ? '#166534' : '#991b1b'
-                      }}>{log.action.toUpperCase()}</span>
-                    </td>
-                    <td style={{ padding: '1rem', fontSize: '0.8rem', color: '#64748b' }}>{log.reason || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4f46e5' }}></div>
+            <h3 style={{ margin: 0 }}>System Statistics</h3>
           </div>
-        </div>
-
-        <div>
-          <h2>Quick Actions</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <Link to="/admin/parties" className="card" style={{ textDecoration: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
+              <span>Political Parties</span>
+              <span style={{ fontWeight: 700 }}>{stats.parties}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
+              <span>Elections</span>
+              <span style={{ fontWeight: 700 }}>{stats.elections}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
+              <span>Independent Candidates</span>
+              <span style={{ fontWeight: 700 }}>{stats.candidates}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></div>
+            <h3 style={{ margin: 0 }}>Quick Actions</h3>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+            <Link to="/admin/parties" className="card" style={{ textDecoration: 'none', padding: '1rem' }}>
               <h4 style={{ color: 'var(--primary)', margin: 0 }}>Manage Parties &rarr;</h4>
             </Link>
-            <Link to="/admin/elections" className="card" style={{ textDecoration: 'none' }}>
+            <Link to="/admin/elections" className="card" style={{ textDecoration: 'none', padding: '1rem' }}>
               <h4 style={{ color: 'var(--primary)', margin: 0 }}>Manage Elections &rarr;</h4>
             </Link>
-            <Link to="/admin/candidates" className="card" style={{ textDecoration: 'none' }}>
-              <h4 style={{ color: 'var(--primary)', margin: 0 }}>Manage Candidates &rarr;</h4>
+            <Link to="/admin/candidates" className="card" style={{ textDecoration: 'none', padding: '1rem' }}>
+              <h4 style={{ color: 'var(--primary)', margin: 0 }}>Manage Independent Candidates &rarr;</h4>
             </Link>
-            <Link to="/admin/tally" className="card" style={{ textDecoration: 'none' }}>
+            <Link to="/admin/tally" className="card" style={{ textDecoration: 'none', padding: '1rem' }}>
               <h4 style={{ color: 'var(--primary)', margin: 0 }}>View Elected (Tally) &rarr;</h4>
             </Link>
           </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <div style={{ width: '4px', height: '32px', background: '#ef4444', borderRadius: '2px' }}></div>
+          <h2 style={{ marginBottom: 0 }}>Security & Audit</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          <Link to="/admin/logs" className="card" style={{ textDecoration: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0 }}>Security Activity Log</h3>
+              <span style={{ fontSize: '0.8rem', background: '#fee2e2', color: '#991b1b', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 700 }}>AUDIT ACTIVE</span>
+            </div>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              Track logins, voting attempts, and administrative record changes with full IP and device data.
+            </p>
+            <div style={{ color: 'var(--primary)', fontWeight: 700 }}>Access Complete Audit Trail &rarr;</div>
+          </Link>
+          
+          <Link to="/admin/voters" className="card" style={{ textDecoration: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0 }}>Voter Registry</h3>
+              <span style={{ fontSize: '0.8rem', background: '#dcfce7', color: '#166534', padding: '0.3rem 0.6rem', borderRadius: '6px', fontWeight: 700 }}>PROTECTED</span>
+            </div>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              Review registered citizen profiles and voting eligibility status. Passwords remain encrypted.
+            </p>
+            <div style={{ color: 'var(--primary)', fontWeight: 700 }}>View Citizen Registry &rarr;</div>
+          </Link>
         </div>
       </div>
     </div>

@@ -68,4 +68,26 @@ router.get('/logs', protect, authorize('admin'), async (req, res) => {
   }
 });
 
+const AuditLog = require('../models/AuditLog');
+
+// @desc  Get system audit logs
+// @route GET /api/admin/audit-logs
+router.get('/audit-logs', protect, authorize('admin'), async (req, res) => {
+  try {
+    const logs = await AuditLog.find().populate('user', 'name email role').sort({ createdAt: -1 }).limit(100);
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get('/voters', protect, authorize('admin'), async (req, res) => {
+  try {
+    const voters = await User.find({ role: 'voter' }).select('-password').sort({ createdAt: -1 });
+    res.json(voters);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

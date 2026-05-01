@@ -79,9 +79,9 @@ function CandidatesPage() {
     <div className="container">
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
         <div style={{ width: '4px', height: '32px', background: '#ec4899', borderRadius: '2px' }}></div>
-        <h1 style={{ marginBottom: 0 }}>Meet the Candidates</h1>
+        <h1 style={{ marginBottom: 0 }}>Independent Candidates</h1>
       </div>
-      <p style={{ color: '#64748b', marginBottom: '3rem' }}>Browse candidates and confirm your choice for the upcoming election.</p>
+      <p style={{ color: '#64748b', marginBottom: '3rem' }}>Browse independent candidates and confirm your choice for the upcoming election.</p>
 
       {loading ? (
         <p>Loading candidates...</p>

@@ -1,27 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
-
-const DescriptionCell = ({ text }) => {
-  const [expanded, setExpanded] = useState(false);
-  const needsExpansion = text && text.length > 120;
-
-  return (
-    <div style={{ marginBottom: '2rem' }}>
-      <p className={expanded ? '' : 'text-clamp-3'} style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6' }}>
-        {text || 'No description provided.'}
-      </p>
-      {needsExpansion && (
-        <button 
-          onClick={() => setExpanded(!expanded)} 
-          style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.85rem', marginTop: '0.25rem' }}
-        >
-          {expanded ? 'Show Less' : 'More...'}
-        </button>
-      )}
-    </div>
-  );
-};
+import voterHero from '../assets/voter-hero.png';
 
 function ElectionsPage() {
   const [elections, setElections] = useState([]);
@@ -43,9 +23,26 @@ function ElectionsPage() {
 
   return (
     <div className="container">
-      <div style={{ marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Elections Portal</h1>
-        <p style={{ color: '#64748b', fontSize: '1.1rem' }}>Browse active and upcoming elections to cast your vote.</p>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '4rem',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+        padding: '2.5rem',
+        borderRadius: '24px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
+      }}>
+        <div style={{ maxWidth: '600px' }}>
+          <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '1rem', color: '#0f172a' }}>Elections Portal</h1>
+          <p style={{ color: '#64748b', fontSize: '1.2rem', lineHeight: '1.6' }}>
+            Your voice matters. Browse active elections, review independent candidates and political parties, and cast your secure digital ballot to shape the future.
+          </p>
+        </div>
+        <div style={{ width: '450px', height: '280px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+          <img src={voterHero} alt="Secure Voting" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
       </div>
 
       {loading ? (
@@ -71,7 +68,10 @@ function ElectionsPage() {
                       <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500 }}>Ends {new Date(election.endDate).toLocaleDateString()}</span>
                     </div>
                     <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{election.title}</h3>
-                    <DescriptionCell text={election.description} />
+                    {/* Display full description without truncation */}
+                    <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: '1.6', marginBottom: '1.5rem', whiteSpace: 'pre-wrap' }}>
+                      {election.description || 'No description provided.'}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -95,6 +95,9 @@ function ElectionsPage() {
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', background: '#f1f5f9', padding: '0.3rem 0.6rem', borderRadius: '6px', textTransform: 'uppercase' }}>Closed</span>
                   </div>
                   <h3 style={{ fontSize: '1.35rem', marginBottom: '1rem' }}>{election.title}</h3>
+                  <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '1.5rem', whiteSpace: 'pre-wrap' }}>
+                    {election.description}
+                  </p>
                   <Link to={`/results/${election._id}`} style={{ color: 'var(--primary)', fontWeight: 700 }}>View Final Results &rarr;</Link>
                 </div>
               ))}

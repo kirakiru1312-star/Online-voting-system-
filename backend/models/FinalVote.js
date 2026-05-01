@@ -8,9 +8,9 @@ const finalVoteSchema = new mongoose.Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     age: { type: Number, required: true },
-    email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true, unique: true },
-    nationalId: { type: String, required: true, unique: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    nationalId: { type: String, required: true },
     profession: { type: String, required: true },
     nationality: { type: String, required: true },
     region: { type: String, required: true },
@@ -22,6 +22,7 @@ const finalVoteSchema = new mongoose.Schema(
 );
 
 // Enforce one vote per voter overall
+// This is the critical constraint that prevents multiple voting.
 finalVoteSchema.index({ voter: 1 }, { unique: true });
 
 module.exports = mongoose.model('FinalVote', finalVoteSchema);

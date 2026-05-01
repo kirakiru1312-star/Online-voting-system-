@@ -4,12 +4,11 @@ import { toast } from 'react-toastify';
 
 function AdminCandidates() {
   const [candidates, setCandidates] = useState([]);
-  const [parties, setParties] = useState([]);
   const [elections, setElections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    name: '', bio: '', party: '', election: '', referenceUrl: ''
+    name: '', bio: '', election: '', referenceUrl: ''
   });
   const [photo, setPhoto] = useState(null);
 
@@ -19,13 +18,11 @@ function AdminCandidates() {
 
   const fetchInitialData = async () => {
     try {
-      const [candRes, partyRes, elecRes] = await Promise.all([
+      const [candRes, elecRes] = await Promise.all([
         api.get('/candidates'),
-        api.get('/parties'),
         api.get('/elections')
       ]);
       setCandidates(candRes.data);
-      setParties(partyRes.data);
       setElections(elecRes.data);
     } catch (err) {
       toast.error('Failed to fetch data');
@@ -46,7 +43,6 @@ function AdminCandidates() {
     setEditingId(cand._id);
     setFormData({
       name: cand.name, bio: cand.bio || '',
-      party: cand.party?._id || '',
       election: cand.election?._id || '',
       referenceUrl: cand.referenceUrl || ''
     });
@@ -55,7 +51,7 @@ function AdminCandidates() {
 
   const cancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', bio: '', party: '', election: '', referenceUrl: '' });
+    setFormData({ name: '', bio: '', election: '', referenceUrl: '' });
     setPhoto(null);
   };
 
@@ -64,7 +60,8 @@ function AdminCandidates() {
     const data = new FormData();
     data.append('name', formData.name);
     data.append('bio', formData.bio);
-    data.append('party', formData.party);
+    // Explicitly set party to null for independent candidates
+    data.append('party', ''); 
     data.append('election', formData.election);
     data.append('referenceUrl', formData.referenceUrl);
     if (photo) data.append('photo', photo);
@@ -72,10 +69,10 @@ function AdminCandidates() {
     try {
       if (editingId) {
         await api.put(`/candidates/${editingId}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
-        toast.success('Candidate updated successfully');
+        toast.success('Independent Candidate updated successfully');
       } else {
         await api.post('/candidates', data, { headers: { 'Content-Type': 'multipart/form-data' } });
-        toast.success('Candidate added successfully');
+        toast.success('Independent Candidate added successfully');
       }
       cancelEdit();
       e.target.reset();
@@ -90,7 +87,7 @@ function AdminCandidates() {
     if (window.confirm('Are you sure?')) {
       try {
         await api.delete(`/candidates/${id}`);
-        toast.success('Candidate removed');
+        toast.success('Independent Candidate removed');
         setCandidates(candidates.filter(c => c._id !== id));
       } catch (err) {
         toast.error('Failed to delete');
@@ -118,69 +115,71 @@ function AdminCandidates() {
   return (
     <div className="container">
       <div className="card">
-        <h2>{editingId ? 'Edit Candidate' : 'Add Candidate'}</h2>
+        <h2>{editingId ? 'Edit Independent Candidate' : 'Add Independent Candidate'}</h2>
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div className="form-group"><label>Candidate Name</label><input type="text" name="name" className="form-control" value={formData.name} onChange={handleChange} required /></div>
             <div className="form-group"><label>Photo</label><input type="file" className="form-control" onChange={handleFileChange} /></div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="form-group"><label>Party</label>
-              <select name="party" className="form-control" value={formData.party} onChange={handleChange} required>
-                <option value="">Select Party</option>
-                {parties.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
-              </select>
-            </div>
-            <div className="form-group"><label>Election</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div className="form-group">
+              <label>Election Assignment</label>
               <select name="election" className="form-control" value={formData.election} onChange={handleChange} required>
                 <option value="">Select Election</option>
                 {elections.map(e => <option key={e._id} value={e._id}>{e.title}</option>)}
               </select>
             </div>
+            <div className="form-group"><label>Portfolio/Reference URL</label><input type="url" name="referenceUrl" className="form-control" value={formData.referenceUrl} onChange={handleChange} placeholder="https://example.com" /></div>
           </div>
-          <div className="form-group"><label>Biography</label><textarea name="bio" className="form-control" value={formData.bio} onChange={handleChange} rows="2" /></div>
+          <div className="form-group"><label>Biography</label><textarea name="bio" className="form-control" value={formData.bio} onChange={handleChange} rows="3" placeholder="Tell us about the independent candidate..." /></div>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button type="submit" className="btn btn-primary">{editingId ? 'Update' : 'Add'}</button>
+            <button type="submit" className="btn btn-primary">{editingId ? 'Update Candidate' : 'Register Candidate'}</button>
             {editingId && <button type="button" className="btn" onClick={cancelEdit}>Cancel</button>}
           </div>
         </form>
       </div>
 
       <div className="card">
-        <h2>Candidates List</h2>
+        <h2>Independent Candidates List</h2>
         {loading ? <p>Loading...</p> : (
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Photo</th>
-                  <th>Name</th>
-                  <th>Status</th>
+                  <th>Profile</th>
+                  <th>Name & Status</th>
+                  <th>Election</th>
+                  <th>Availability</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {candidates.map((cand) => (
                   <tr key={cand._id} style={{ opacity: cand.isActive ? 1 : 0.6 }}>
-                    <td>{cand.photoUrl ? <img src={getFullUrl(cand.photoUrl)} alt="cand" style={{ width: '32px', height: '32px', borderRadius: '50%' }} /> : '👤'}</td>
-                    <td><strong>{cand.name}</strong><br/><small style={{color: '#64748b'}}>{cand.party?.name}</small></td>
+                    <td>{cand.photoUrl ? <img src={getFullUrl(cand.photoUrl)} alt="cand" style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #f1f5f9' }} /> : <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</div>}</td>
+                    <td>
+                      <div style={{ fontWeight: 700 }}>{cand.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Independent Candidate</div>
+                    </td>
+                    <td><div style={{ fontSize: '0.85rem' }}>{cand.election?.title}</div></td>
                     <td>
                       <span style={{ 
-                        padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 800,
+                        padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800,
                         background: cand.isActive ? '#dcfce7' : '#fee2e2', color: cand.isActive ? '#166534' : '#991b1b'
                       }}>
-                        {cand.isActive ? 'ENABLED' : 'DISABLED'}
+                        {cand.isActive ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button onClick={() => handleToggleStatus(cand)} style={{ color: cand.isActive ? '#eab308' : '#22c55e', background: 'none', border: 'none', fontWeight: 600 }}>{cand.isActive ? 'Disable' : 'Enable'}</button>
-                        <button onClick={() => handleEdit(cand)} style={{ color: '#4f46e5', background: 'none', border: 'none', fontWeight: 600 }}>Edit</button>
-                        <button onClick={() => handleDelete(cand._id)} style={{ color: '#ef4444', background: 'none', border: 'none', fontWeight: 600 }}>Remove</button>
+                      <div style={{ display: 'flex', gap: '1.25rem' }}>
+                        <button onClick={() => handleToggleStatus(cand)} style={{ color: cand.isActive ? '#eab308' : '#22c55e', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}>{cand.isActive ? 'Disable' : 'Enable'}</button>
+                        <button onClick={() => handleEdit(cand)} style={{ color: '#4f46e5', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => handleDelete(cand._id)} style={{ color: '#ef4444', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Remove</button>
                       </div>
                     </td>
                   </tr>
                 ))}
+                {candidates.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No independent candidates registered yet.</td></tr>}
               </tbody>
             </table>
           </div>
