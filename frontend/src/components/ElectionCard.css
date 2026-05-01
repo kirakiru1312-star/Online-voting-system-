@@ -1,0 +1,66 @@
+.election-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.4rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.election-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.election-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.election-card-header h3 { font-size: 1.1rem; color: #1a73e8; }
+
+.badge {
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.election-desc { font-size: 0.9rem; color: #555; }
+
+.election-dates {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.82rem;
+  color: #777;
+}
+
+.election-card-actions {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.4rem;
+}
+
+.btn-primary {
+  background: #1a73e8;
+  color: #fff;
+  padding: 0.45rem 1rem;
+  border-radius: 5px;
+  font-size: 0.88rem;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #1558b0; }
+
+.btn-secondary {
+  background: #6c757d;
+  color: #fff;
+  padding: 0.45rem 1rem;
+  border-radius: 5px;
+  font-size: 0.88rem;
+  transition: background 0.2s;
+}
+.btn-secondary:hover { background: #545b62; }

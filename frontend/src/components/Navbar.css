@@ -1,0 +1,50 @@
+.navbar {
+  background: white;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-brand a {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #4f46e5;
+  letter-spacing: -0.5px;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.navbar-links a {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.9375rem;
+  transition: color 0.2s;
+}
+
+.navbar-links a:hover {
+  color: #4f46e5;
+}
+
+.navbar-user {
+  background: #f1f5f9;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.btn-logout {
+}
+
+.btn-logout:hover { background: rgba(255,255,255,0.35); }
