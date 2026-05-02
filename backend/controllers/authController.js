@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { sendOTP } = require('../services/emailService');
+const crypto = require('crypto');
 
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
@@ -63,4 +65,68 @@ exports.login = async (req, res) => {
 
 exports.getMe = async (req, res) => {
   res.json({ user: { id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role, hasVoted: req.user.hasVoted } });
+};
+
+// @desc  Request OTP for email verification
+// @route POST /api/auth/request-otp
+exports.requestOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60000); // 10 minutes
+
+    user.otpCode = otp;
+    user.otpExpire = otpExpire;
+    await user.save();
+
+    await sendOTP(user.email, otp);
+    res.json({ message: 'OTP sent to your email.' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// @desc  Verify OTP
+// @route POST /api/auth/verify-otp
+exports.verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+    
+    if (!user || user.otpCode !== otp || user.otpExpire < new Date()) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    // OTP is valid - we can either clear it now or leave it for the next step
+    // Clear OTP after successful verification to ensure single-use
+    user.otpCode = undefined;
+    user.otpExpire = undefined;
+    await user.save();
+
+    res.json({ message: 'OTP verified successfully.', success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// @desc  Reset Password
+// @route POST /api/auth/reset-password
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    user.password = hashed;
+    await user.save();
+
+    res.json({ message: 'Password reset successful.' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };

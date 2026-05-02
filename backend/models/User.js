@@ -20,7 +20,11 @@ const userSchema = new mongoose.Schema(
     kebele: { type: String },
     
     hasVoted: { type: Boolean, default: false },
-    votedAt: { type: Date }
+    votedAt: { type: Date },
+    
+    // Email Verification OTP
+    otpCode: { type: String },
+    otpExpire: { type: Date }
   },
   { timestamps: true }
 );

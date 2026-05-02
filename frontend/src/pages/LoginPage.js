@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { loginUser } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
@@ -12,6 +13,14 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Forgot Password States
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState('email'); // 'email', 'otp', 'reset'
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -22,11 +31,58 @@ const LoginPage = () => {
       const res = await loginUser(form);
       login(res.data.user, res.data.token);
       toast.success(`Welcome back, ${res.data.user.name}!`);
-      navigate(res.data.user.role === 'admin' ? '/admin' : '/elections');
+      navigate(res.data.user.role === 'admin' ? '/admin/system' : '/elections');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRequestForgotOtp = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    try {
+      await api.post('/auth/request-otp', { email: forgotEmail });
+      toast.success('Verification code sent to your email.');
+      setForgotStep('otp');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send code.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleVerifyForgotOtp = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    try {
+      await api.post('/auth/verify-otp', { email: forgotEmail, otp: forgotOtp });
+      toast.success('Code verified successfully.');
+      setForgotStep('reset');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid or expired code.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (newPassword.length < 8) return toast.error('Password must be at least 8 characters.');
+    setForgotLoading(true);
+    try {
+      await api.post('/auth/reset-password', { email: forgotEmail, newPassword });
+      toast.success('Password reset successful. Please login.');
+      setShowForgotModal(false);
+      setForgotStep('email');
+      setForgotEmail('');
+      setForgotOtp('');
+      setNewPassword('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reset password.');
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -114,11 +170,99 @@ const LoginPage = () => {
           <button type="submit" className="btn-submit" disabled={loading} style={{ fontWeight: 800 }}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <button 
+              type="button" 
+              onClick={() => setShowForgotModal(true)} 
+              style={{ background: 'none', border: 'none', color: '#cbd5e1', fontSize: '0.9rem', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Forgot Password?
+            </button>
+          </div>
         </form>
         <p className="auth-switch" style={{ color: 'white' }}>
           Don't have an account? <Link to="/register" style={{ color: '#22c55e', fontWeight: 800 }}>Register</Link>
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(5px)' }}>
+          <div className="card" style={{ maxWidth: '400px', width: '90%', padding: '2.5rem', background: 'white' }}>
+            <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', color: '#1e293b' }}>Reset Password</h2>
+            
+            {forgotStep === 'email' && (
+              <form onSubmit={handleRequestForgotOtp}>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Enter your email address to receive a verification code.</p>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Email Address</label>
+                  <input 
+                    type="email" 
+                    className="form-control"
+                    value={forgotEmail} 
+                    onChange={(e) => setForgotEmail(e.target.value)} 
+                    required 
+                    placeholder="you@example.com"
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ width: '100%' }}>
+                  {forgotLoading ? 'Sending...' : 'Send Verification Code'}
+                </button>
+              </form>
+            )}
+
+            {forgotStep === 'otp' && (
+              <form onSubmit={handleVerifyForgotOtp}>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Enter the 6-digit code sent to <strong>{forgotEmail}</strong>.</p>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Verification Code</label>
+                  <input 
+                    type="text" 
+                    className="form-control"
+                    maxLength="6"
+                    value={forgotOtp} 
+                    onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, ''))} 
+                    required 
+                    placeholder="123456"
+                    style={{ textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.3rem' }}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ width: '100%' }}>
+                  {forgotLoading ? 'Verifying...' : 'Verify Code'}
+                </button>
+              </form>
+            )}
+
+            {forgotStep === 'reset' && (
+              <form onSubmit={handleResetPassword}>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Identity verified. Please enter your new password.</p>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>New Password</label>
+                  <input 
+                    type="password" 
+                    className="form-control"
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    required 
+                    placeholder="Min 8 characters"
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ width: '100%' }}>
+                  {forgotLoading ? 'Updating...' : 'Update Password'}
+                </button>
+              </form>
+            )}
+
+            <button 
+              onClick={() => { setShowForgotModal(false); setForgotStep('email'); }} 
+              className="btn" 
+              style={{ width: '100%', marginTop: '1rem', background: '#f1f5f9', color: '#475569' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

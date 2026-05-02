@@ -3,22 +3,7 @@ import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 
-const DescriptionCell = ({ text }) => {
-  const [expanded, setExpanded] = useState(false);
-  const needsExpansion = text && text.length > 120;
-  return (
-    <div style={{ marginBottom: '2rem' }}>
-      <p className={expanded ? '' : 'text-clamp-3'} style={{ color: '#64748b', fontSize: '1rem', minHeight: expanded ? 'auto' : '4.5rem' }}>
-        {text || 'No description available.'}
-      </p>
-      {needsExpansion && (
-        <button onClick={() => setExpanded(!expanded)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.85rem', marginTop: '0.25rem' }}>
-          {expanded ? 'Show Less' : 'More...'}
-        </button>
-      )}
-    </div>
-  );
-};
+
 
 function PartiesPage() {
   const { user } = useAuth();
@@ -29,6 +14,13 @@ function PartiesPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedParty, setSelectedParty] = useState(null);
   const [votingProgress, setVotingProgress] = useState(false);
+  const [showOtpStep, setShowOtpStep] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [expandedParties, setExpandedParties] = useState({});
+
+  const togglePartyExpand = (id) => {
+    setExpandedParties(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,17 +49,45 @@ function PartiesPage() {
     if (!activeElection) return toast.error('Voting is currently disabled.');
     setSelectedParty(party);
     setShowConfirmModal(true);
+    setShowOtpStep(false);
+    setOtp('');
+  };
+
+  const handleRequestOtp = async () => {
+    setVotingProgress(true);
+    try {
+      await api.post('/auth/request-otp', { email: user.email });
+      toast.success('Verification code sent to your email.');
+      setShowOtpStep(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send verification code.');
+    } finally {
+      setVotingProgress(false);
+    }
   };
 
   const confirmVote = async () => {
+    if (!showOtpStep) {
+      return handleRequestOtp();
+    }
+
+    if (otp.length !== 6) {
+      return toast.warning('Please enter the 6-digit code sent to your email.');
+    }
+
     setVotingProgress(true);
     try {
+      // 1. Verify OTP
+      await api.post('/auth/verify-otp', { email: user.email, otp });
+      
+      // 2. Cast Vote
       await api.post('/parties/vote', { partyId: selectedParty._id });
+      
       toast.success(`Success! You have voted for ${selectedParty.name}`);
       setHasVoted(true);
       setShowConfirmModal(false);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to cast vote');
+      toast.error(err.response?.data?.message || 'Failed to verify or cast vote');
     } finally {
       setVotingProgress(false);
     }
@@ -101,7 +121,7 @@ function PartiesPage() {
       {loading ? (
         <p>Loading parties...</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
           {parties.map(party => (
             <div key={party._id} className="card" style={{ textAlign: 'center', transition: 'all 0.3s ease', border: '1px solid #f1f5f9', background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)', opacity: (hasVoted || !activeElection || user?.role === 'admin') ? 0.8 : 1, display: 'flex', flexDirection: 'column' }}>
               {party.logoUrl ? (
@@ -111,7 +131,17 @@ function PartiesPage() {
               )}
               <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{party.name}</h3>
               <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.25rem' }}>{party.abbreviation}</p>
-              <DescriptionCell text={party.description} />
+              
+              <div style={{ marginBottom: '2rem' }}>
+                <p className={expandedParties[party._id] ? '' : 'text-clamp-3'} style={{ color: '#64748b', fontSize: '1rem', minHeight: expandedParties[party._id] ? 'auto' : '4.5rem' }}>
+                  {party.description || 'No description available.'}
+                </p>
+                {party.description && party.description.length > 120 && (
+                  <button onClick={() => togglePartyExpand(party._id)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                    {expandedParties[party._id] ? 'Show Less' : 'More...'}
+                  </button>
+                )}
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
                 <button 
                   onClick={() => party.referenceUrl && window.open(party.referenceUrl, '_blank')} 
@@ -135,11 +165,43 @@ function PartiesPage() {
             {selectedParty.logoUrl && <img src={getFullUrl(selectedParty.logoUrl)} alt="logo" style={{ width: '80px', height: '80px', borderRadius: '15px', marginBottom: '1.5rem' }} />}
             <h2 style={{ marginBottom: '1rem' }}>Confirm Election Vote</h2>
             <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#475569' }}>
-              Are you sure you want to vote for <br/><strong style={{ color: 'var(--primary)', fontSize: '1.4rem' }}>{selectedParty.name}</strong>?
+              {showOtpStep ? (
+                <>
+                  A verification code has been sent to <strong>{user.email}</strong>.<br/>
+                  Please enter the 6-digit code below to confirm your identity.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to vote for <br/><strong style={{ color: 'var(--primary)', fontSize: '1.4rem' }}>{selectedParty.name}</strong>?
+                </>
+              )}
             </p>
+
+            {showOtpStep && (
+              <div style={{ marginBottom: '2rem' }}>
+                <input 
+                  type="text" 
+                  maxLength="6"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Enter 6-digit OTP"
+                  style={{ 
+                    width: '100%', 
+                    padding: '1rem', 
+                    textAlign: 'center', 
+                    fontSize: '1.5rem', 
+                    letterSpacing: '0.5rem',
+                    borderRadius: '12px',
+                    border: '2px solid var(--primary)',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button onClick={confirmVote} className="btn btn-primary" disabled={votingProgress} style={{ flex: 1, padding: '1rem' }}>
-                {votingProgress ? 'Voting...' : 'Yes, Confirm'}
+                {votingProgress ? (showOtpStep ? 'Verifying...' : 'Sending...') : (showOtpStep ? 'Verify & Confirm Vote' : 'Yes, Send Verification Code')}
               </button>
               <button onClick={() => setShowConfirmModal(false)} className="btn" disabled={votingProgress} style={{ flex: 1, background: '#f1f5f9', color: '#475569', padding: '1rem' }}>
                 No, Cancel

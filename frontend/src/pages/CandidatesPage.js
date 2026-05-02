@@ -3,22 +3,7 @@ import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 
-const BioCell = ({ text }) => {
-  const [expanded, setExpanded] = useState(false);
-  const needsExpansion = text && text.length > 100;
-  return (
-    <div style={{ marginBottom: '1.5rem', minHeight: expanded ? 'auto' : '4rem' }}>
-      <p className={expanded ? '' : 'text-clamp-3'} style={{ color: '#64748b', fontSize: '0.9rem' }}>
-        {text || 'No biography available.'}
-      </p>
-      {needsExpansion && (
-        <button onClick={() => setExpanded(!expanded)} style={{ background: 'none', border: 'none', color: '#ec4899', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.8rem', marginTop: '0.25rem' }}>
-          {expanded ? 'Show Less' : 'More...'}
-        </button>
-      )}
-    </div>
-  );
-};
+
 
 function CandidatesPage() {
   const { user } = useAuth();
@@ -28,6 +13,13 @@ function CandidatesPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [votingProgress, setVotingProgress] = useState(false);
+  const [showOtpStep, setShowOtpStep] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [expandedCandidates, setExpandedCandidates] = useState({});
+
+  const toggleCandidateExpand = (id) => {
+    setExpandedCandidates(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,17 +45,45 @@ function CandidatesPage() {
     if (!candidate.election || candidate.election.status !== 'active') return toast.error('Election not active.');
     setSelectedCandidate(candidate);
     setShowConfirmModal(true);
+    setShowOtpStep(false);
+    setOtp('');
   };
 
-  const confirmVote = async () => {
+  const handleRequestOtp = async () => {
     setVotingProgress(true);
     try {
+      await api.post('/auth/request-otp', { email: user.email });
+      toast.success('Verification code sent to your email.');
+      setShowOtpStep(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send verification code.');
+    } finally {
+      setVotingProgress(false);
+    }
+  };
+  
+  const confirmVote = async () => {
+    if (!showOtpStep) {
+      return handleRequestOtp();
+    }
+
+    if (otp.length !== 6) {
+      return toast.warning('Please enter the 6-digit code sent to your email.');
+    }
+
+    setVotingProgress(true);
+    try {
+      // 1. Verify OTP
+      await api.post('/auth/verify-otp', { email: user.email, otp });
+
+      // 2. Cast Vote
       await api.post('/candidates/vote', { candidateId: selectedCandidate._id });
+      
       toast.success(`Success! You have voted for ${selectedCandidate.name}`);
       setHasVoted(true);
       setShowConfirmModal(false);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to cast vote');
+      toast.error(err.response?.data?.message || 'Failed to verify or cast vote');
     } finally {
       setVotingProgress(false);
     }
@@ -86,7 +106,7 @@ function CandidatesPage() {
       {loading ? (
         <p>Loading candidates...</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
           {candidates.map(candidate => {
             const isInactive = !candidate.election || candidate.election.status !== 'active' || candidate.election.type === 'party';
             const canVote = !hasVoted && !isInactive && user?.role !== 'admin';
@@ -102,7 +122,17 @@ function CandidatesPage() {
                 </div>
                 <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{candidate.name}</h3>
                 <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{candidate.election?.title || 'No Election Assigned'}</p>
-                <BioCell text={candidate.bio} />
+                
+                <div style={{ marginBottom: '1.5rem', minHeight: expandedCandidates[candidate._id] ? 'auto' : '4rem' }}>
+                  <p className={expandedCandidates[candidate._id] ? '' : 'text-clamp-3'} style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                    {candidate.bio || 'No biography available.'}
+                  </p>
+                  {candidate.bio && candidate.bio.length > 100 && (
+                    <button onClick={() => toggleCandidateExpand(candidate._id)} style={{ background: 'none', border: 'none', color: '#ec4899', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                      {expandedCandidates[candidate._id] ? 'Show Less' : 'More...'}
+                    </button>
+                  )}
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
                   <button 
                     onClick={() => candidate.referenceUrl && window.open(candidate.referenceUrl, '_blank')} 
@@ -127,11 +157,43 @@ function CandidatesPage() {
             {selectedCandidate.photoUrl && <img src={getFullUrl(selectedCandidate.photoUrl)} alt="photo" style={{ width: '100px', height: '100px', borderRadius: '50%', marginBottom: '1.5rem', border: '3px solid #ec4899' }} />}
             <h2 style={{ marginBottom: '1rem' }}>Confirm Election Vote</h2>
             <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: '#475569' }}>
-              Are you sure you want to vote for <br/><strong style={{ color: '#ec4899', fontSize: '1.4rem' }}>{selectedCandidate.name}</strong>?
+              {showOtpStep ? (
+                <>
+                  A verification code has been sent to <strong>{user.email}</strong>.<br/>
+                  Please enter the 6-digit code below to confirm your identity.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to vote for <br/><strong style={{ color: '#ec4899', fontSize: '1.4rem' }}>{selectedCandidate.name}</strong>?
+                </>
+              )}
             </p>
+
+            {showOtpStep && (
+              <div style={{ marginBottom: '2rem' }}>
+                <input 
+                  type="text" 
+                  maxLength="6"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Enter 6-digit OTP"
+                  style={{ 
+                    width: '100%', 
+                    padding: '1rem', 
+                    textAlign: 'center', 
+                    fontSize: '1.5rem', 
+                    letterSpacing: '0.5rem',
+                    borderRadius: '12px',
+                    border: '2px solid #ec4899',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button onClick={confirmVote} className="btn btn-primary" disabled={votingProgress} style={{ flex: 1, padding: '1rem', background: '#ec4899' }}>
-                {votingProgress ? 'Voting...' : 'Yes, Confirm'}
+                {votingProgress ? (showOtpStep ? 'Verifying...' : 'Sending...') : (showOtpStep ? 'Verify & Confirm Vote' : 'Yes, Send Verification Code')}
               </button>
               <button onClick={() => setShowConfirmModal(false)} className="btn" disabled={votingProgress} style={{ flex: 1, background: '#f1f5f9', color: '#475569', padding: '1rem' }}>
                 No, Cancel
