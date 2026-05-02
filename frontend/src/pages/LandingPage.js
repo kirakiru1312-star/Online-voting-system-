@@ -101,24 +101,11 @@ function LandingPage() {
               backdropFilter: 'blur(15px)',
               border: '1px solid rgba(255,255,255,0.4)'
             }}>
-              Voter Login
+              Login
             </Link>
           </div>
 
-          <div style={{ marginTop: '5rem', display: 'flex', gap: '3rem' }}>
-            <div style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>100%</div>
-              <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>Secure Encryption</div>
-            </div>
-            <div style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>Real-time</div>
-              <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>Live Tallies</div>
-            </div>
-            <div style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>Easy</div>
-              <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>Registration</div>
-            </div>
-          </div>
+
         </div>
       </div>
 

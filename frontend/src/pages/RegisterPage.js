@@ -34,8 +34,11 @@ const RegisterPage = () => {
     if (lettersOnly.includes(name) && value !== '' && !/^[A-Za-z ]+$/.test(value)) return;
     
     // Numbers only fields
-    const numbersOnly = ['age', 'nationalId', 'kebele'];
+    const numbersOnly = ['age', 'nationalId'];
     if (numbersOnly.includes(name) && value !== '' && !/^\d+$/.test(value)) return;
+
+    // Alphanumeric only fields
+    if (name === 'kebele' && value !== '' && !/^[A-Za-z0-9]+$/.test(value)) return;
 
     setForm({ ...form, [name]: value });
   };
@@ -64,13 +67,13 @@ const RegisterPage = () => {
       return toast.error('First and Last names must be at least 2 characters long');
     }
 
-    // Password strength: Min 8, at least 3 non-numeric
-    if (form.password.length < 8) {
-      return toast.error('Password must be at least 8 characters long');
-    }
-    const nonNumericCount = (form.password.match(/[^0-9]/g) || []).length;
-    if (nonNumericCount < 3) {
-      return toast.error('Password must contain at least 3 non-numeric characters (letters or special characters)');
+    // Password strength: Min 8, at least 1 letter, 1 number, and 1 symbol
+    const hasLetter = /[a-zA-Z]/.test(form.password);
+    const hasNumber = /[0-9]/.test(form.password);
+    const hasSymbol = /[^a-zA-Z0-9]/.test(form.password);
+
+    if (form.password.length < 8 || !hasLetter || !hasNumber || !hasSymbol) {
+      return toast.error('Password must be at least 8 characters long and contain at least one letter, one number, and one symbol');
     }
 
     if (form.password !== form.confirmPassword) {
@@ -141,15 +144,15 @@ const RegisterPage = () => {
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
       }}>
         <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '1rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Voter Registration</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} autoComplete="off">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label style={labelStyle}>First Name</label><input type="text" name="firstName" value={form.firstName} onChange={handleChange} required style={inputStyle} /></div>
-            <div className="form-group"><label style={labelStyle}>Last Name</label><input type="text" name="lastName" value={form.lastName} onChange={handleChange} required style={inputStyle} /></div>
+            <div className="form-group"><label style={labelStyle}>First Name</label><input type="text" name="firstName" value={form.firstName} onChange={handleChange} required style={inputStyle} autoComplete="off" /></div>
+            <div className="form-group"><label style={labelStyle}>Last Name</label><input type="text" name="lastName" value={form.lastName} onChange={handleChange} required style={inputStyle} autoComplete="off" /></div>
           </div>
 
           <div className="form-group" style={{ marginBottom: '1.5rem' }}>
             <label style={labelStyle}>Email Address</label>
-            <input type="email" name="email" value={form.email} onChange={handleChange} required style={{ ...inputStyle, width: '100%' }} />
+            <input type="email" name="email" value={form.email} onChange={handleChange} required style={{ ...inputStyle, width: '100%' }} autoComplete="off" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
@@ -163,6 +166,7 @@ const RegisterPage = () => {
                   onChange={handleChange} 
                   required 
                   style={{ ...inputStyle, width: '100%', paddingRight: '3rem' }} 
+                  autoComplete="new-password"
                 />
                 <button 
                   type="button"
@@ -182,6 +186,13 @@ const RegisterPage = () => {
                   {showPassword ? '👁️' : '👁️‍🗨️'}
                 </button>
               </div>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                {(form.password.length >= 8 && /[a-zA-Z]/.test(form.password) && /[0-9]/.test(form.password) && /[^a-zA-Z0-9]/.test(form.password)) ? (
+                  <span style={{ color: 'green' }}>strong</span>
+                ) : (
+                  <span style={{ color: 'red' }}>password must be &gt;= 3 character and &gt;= 8 length</span>
+                )}
+              </div>
             </div>
             <div className="form-group" style={{ position: 'relative' }}>
               <label style={labelStyle}>Confirm Password</label>
@@ -193,6 +204,7 @@ const RegisterPage = () => {
                   onChange={handleChange} 
                   required 
                   style={{ ...inputStyle, width: '100%', paddingRight: '3rem' }} 
+                  autoComplete="new-password"
                 />
                 <button 
                   type="button"
@@ -216,8 +228,8 @@ const RegisterPage = () => {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label style={labelStyle}>Age (Must be 18+)</label><input type="text" name="age" value={form.age} onChange={handleChange} required style={inputStyle} /></div>
-            <div className="form-group"><label style={labelStyle}>Nationality</label><input type="text" name="nationality" value={form.nationality} onChange={handleChange} required style={inputStyle} /></div>
+            <div className="form-group"><label style={labelStyle}>Age (Must be 18+)</label><input type="text" name="age" value={form.age} onChange={handleChange} required style={inputStyle} autoComplete="off" /></div>
+            <div className="form-group"><label style={labelStyle}>Nationality</label><input type="text" name="nationality" value={form.nationality} onChange={handleChange} required style={{ ...inputStyle, opacity: 0.7, cursor: 'not-allowed' }} readOnly /></div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -238,18 +250,18 @@ const RegisterPage = () => {
             </div>
             <div className="form-group">
               <label style={labelStyle}>National ID (FAN) <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#fbbf24' }}>(≥ 16 digits)</span></label>
-              <input type="text" name="nationalId" value={form.nationalId} onChange={handleChange} required minLength="16" style={inputStyle} />
+              <input type="text" name="nationalId" value={form.nationalId} onChange={handleChange} required minLength="16" style={inputStyle} autoComplete="off" />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div className="form-group">
               <label style={labelStyle}>Profession <span style={{ fontSize: '0.7rem', fontWeight: 400, opacity: 0.8 }}>(not soldier)</span></label>
-              <input type="text" name="profession" value={form.profession} onChange={handleChange} required style={inputStyle} />
+              <input type="text" name="profession" value={form.profession} onChange={handleChange} required style={inputStyle} autoComplete="off" />
             </div>
             <div className="form-group">
               <label style={labelStyle}>Region</label>
-              <select name="region" value={form.region} onChange={handleChange} required style={{ ...inputStyle, width: '100%', color: '#0f172a' }}>
+              <select name="region" value={form.region} onChange={handleChange} required style={{ ...inputStyle, width: '100%', color: '#0f172a' }} autoComplete="off">
                 <option value="" style={{ color: '#0f172a' }}>Select Region</option>
                 {regions.map(r => <option key={r} value={r} style={{ color: '#0f172a' }}>{r}</option>)}
               </select>
@@ -257,8 +269,8 @@ const RegisterPage = () => {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div className="form-group"><label style={labelStyle}>Wereda / Sub-City</label><input type="text" name="subCity" value={form.subCity} onChange={handleChange} required style={inputStyle} /></div>
-            <div className="form-group"><label style={labelStyle}>Kebele</label><input type="text" name="kebele" value={form.kebele} onChange={handleChange} required style={inputStyle} /></div>
+            <div className="form-group"><label style={labelStyle}>Wereda / Sub-City</label><input type="text" name="subCity" value={form.subCity} onChange={handleChange} required style={inputStyle} autoComplete="off" /></div>
+            <div className="form-group"><label style={labelStyle}>Kebele</label><input type="text" name="kebele" value={form.kebele} onChange={handleChange} required style={inputStyle} autoComplete="off" /></div>
           </div>
 
           <button type="submit" className="btn-submit" disabled={loading} style={{ marginTop: '2rem', width: '100%', padding: '1.25rem', fontSize: '1.1rem', fontWeight: 800 }}>

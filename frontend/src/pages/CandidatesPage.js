@@ -88,7 +88,7 @@ function CandidatesPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
           {candidates.map(candidate => {
-            const isInactive = !candidate.election || candidate.election.status !== 'active';
+            const isInactive = !candidate.election || candidate.election.status !== 'active' || candidate.election.type === 'party';
             const canVote = !hasVoted && !isInactive && user?.role !== 'admin';
             return (
               <div key={candidate._id} className="card" style={{ textAlign: 'center', transition: 'all 0.3s ease', border: '1px solid #f1f5f9', opacity: canVote ? 1 : 0.8, display: 'flex', flexDirection: 'column' }}>
@@ -104,8 +104,15 @@ function CandidatesPage() {
                 <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{candidate.election?.title || 'No Election Assigned'}</p>
                 <BioCell text={candidate.bio} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
+                  <button 
+                    onClick={() => candidate.referenceUrl && window.open(candidate.referenceUrl, '_blank')} 
+                    className="btn" 
+                    style={{ width: '100%', padding: '1rem', background: '#f1f5f9', color: '#475569', fontWeight: 600 }}
+                  >
+                    Account Details
+                  </button>
                   <button onClick={() => handleVoteClick(candidate)} className="btn btn-primary" disabled={!canVote} style={{ width: '100%', padding: '1rem', background: canVote ? '#ec4899' : '#94a3b8' }}>
-                    {hasVoted ? 'Vote Cast' : isInactive ? 'Voting Closed' : user?.role === 'admin' ? 'Admin Restricted' : 'Elect Candidate'}
+                    {hasVoted ? 'Vote Cast' : isInactive ? 'Election Closed' : user?.role === 'admin' ? 'Admin Restricted' : 'Elect Candidate'}
                   </button>
                 </div>
               </div>

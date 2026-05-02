@@ -113,6 +113,13 @@ function PartiesPage() {
               <p style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.25rem' }}>{party.abbreviation}</p>
               <DescriptionCell text={party.description} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
+                <button 
+                  onClick={() => party.referenceUrl && window.open(party.referenceUrl, '_blank')} 
+                  className="btn" 
+                  style={{ width: '100%', padding: '1rem', background: '#f1f5f9', color: '#475569', fontWeight: 600 }}
+                >
+                  Account Details
+                </button>
                 <button onClick={() => handleVoteClick(party)} className="btn btn-primary" disabled={hasVoted || !activeElection || user?.role === 'admin'} style={{ width: '100%', padding: '1rem', background: (hasVoted || !activeElection || user?.role === 'admin') ? '#94a3b8' : 'var(--primary)' }}>
                   {hasVoted ? 'Vote Cast' : !activeElection ? 'Election Closed' : user?.role === 'admin' ? 'Admin Restricted' : 'Elect the Party'}
                 </button>

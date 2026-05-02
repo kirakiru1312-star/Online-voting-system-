@@ -11,6 +11,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -81,15 +82,34 @@ const LoginPage = () => {
           </div>
           <div className="form-group">
             <label style={{ color: 'white', fontWeight: 800, fontSize: '1.2rem', marginBottom: '1rem', display: 'block' }}>Password</label>
-            <input 
-              type="password" 
-              name="password" 
-              value={form.password} 
-              onChange={handleChange} 
-              required 
-              placeholder="••••••••" 
-              style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)' }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                name="password" 
+                value={form.password} 
+                onChange={handleChange} 
+                required 
+                placeholder="••••••••" 
+                style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)', width: '100%', paddingRight: '3rem' }}
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem'
+                }}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
           </div>
           <button type="submit" className="btn-submit" disabled={loading} style={{ fontWeight: 800 }}>
             {loading ? 'Logging in...' : 'Login'}

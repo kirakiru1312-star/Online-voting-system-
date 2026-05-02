@@ -89,9 +89,9 @@ exports.voteForCandidate = [
       const candidate = await Candidate.findById(candidateId).populate('election');
       if (!candidate) return res.status(404).json({ message: 'Candidate not found.' });
 
-      if (!candidate.election || candidate.election.status !== 'active') {
-        await logActivity({ req, action: 'Vote Cast (Candidate)', status: 'rejected', reason: 'Election not active', severity: 'WARNING' });
-        return res.status(400).json({ message: 'Voting is not allowed at this time. The election is not active.' });
+      if (!candidate.election || candidate.election.status !== 'active' || candidate.election.type === 'party') {
+        await logActivity({ req, action: 'Vote Cast (Candidate)', status: 'rejected', reason: 'Election not active or independent candidates disabled', severity: 'WARNING' });
+        return res.status(400).json({ message: 'Independent candidates are not participating in this election.' });
       }
 
       const alreadyVoted = await FinalVote.findOne({ voter: req.user._id });
