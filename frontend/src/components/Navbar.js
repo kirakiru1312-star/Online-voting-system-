@@ -27,7 +27,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -44,6 +44,7 @@ const Navbar = () => {
                 <Link to="/admin/parties">Parties</Link>
                 <Link to="/admin/elections">Elections</Link>
                 <Link to="/admin/candidates">Independent Candidates</Link>
+                <Link to="/admin/messages">Messages</Link>
                 
                 {/* Voter Stats Navigation Item */}
                 <Link to="/admin/voters" className="nav-stats" style={{ 
@@ -62,6 +63,7 @@ const Navbar = () => {
               <>
                 <Link to="/parties">Political Parties</Link>
                 <Link to="/candidates">Independent Candidates</Link>
+                <Link to="/contact">Contact Us</Link>
               </>
             )}
             <span className="navbar-user">👤 {user.name}</span>
@@ -71,6 +73,7 @@ const Navbar = () => {
           <>
             <Link to="/login">Login</Link>
             <Link to="/register">Register</Link>
+            <Link to="/contact">Contact Us</Link>
           </>
         )}
       </div>

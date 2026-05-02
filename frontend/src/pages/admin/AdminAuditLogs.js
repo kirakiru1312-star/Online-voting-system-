@@ -10,6 +10,7 @@ function AdminAuditLogs() {
   }, []);
 
   const fetchLogs = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/admin/audit-logs');
       setLogs(res.data);

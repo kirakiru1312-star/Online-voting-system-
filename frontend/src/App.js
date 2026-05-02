@@ -23,7 +23,9 @@ import AdminTally from './pages/admin/AdminTally';
 import AdminVoters from './pages/admin/AdminVoters';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 import AdminVoteSystem from './pages/admin/AdminVoteSystem';
+import AdminMessages from './pages/admin/AdminMessages';
 import LandingPage from './pages/LandingPage';
+import ContactPage from './pages/ContactPage';
 
 function App() {
   return (
@@ -35,6 +37,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/contact" element={<ContactPage />} />
 
           {/* Voter protected */}
           <Route element={<PrivateRoute />}>
@@ -55,6 +58,7 @@ function App() {
             <Route path="/admin/voters" element={<AdminVoters />} />
             <Route path="/admin/logs" element={<AdminAuditLogs />} />
             <Route path="/admin/system" element={<AdminVoteSystem />} />
+            <Route path="/admin/messages" element={<AdminMessages />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

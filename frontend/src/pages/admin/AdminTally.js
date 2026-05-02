@@ -13,7 +13,10 @@ function AdminTally() {
     setLoading(true);
     try {
       const res = await api.get('/admin/tally');
-      setData(res.data);
+      // Rank by voteCount (descending)
+      const sortedParties = (res.data.parties || []).sort((a, b) => b.voteCount - a.voteCount);
+      const sortedCandidates = (res.data.candidates || []).sort((a, b) => b.voteCount - a.voteCount);
+      setData({ parties: sortedParties, candidates: sortedCandidates });
     } catch (err) {
       console.error('Failed to fetch tally');
     } finally {

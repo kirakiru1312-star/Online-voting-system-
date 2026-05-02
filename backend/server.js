@@ -10,6 +10,7 @@ const candidateRoutes = require('./routes/candidateRoutes');
 const voteRoutes = require('./routes/voteRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/candidates', candidateRoutes);
 app.use('/api/votes', voteRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'Online Voting System API is running' }));

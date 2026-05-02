@@ -68,8 +68,8 @@ const LoginPage = () => {
       }}>
         <h2 style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)', color: 'white' }}>Login</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label style={{ color: 'white', fontWeight: 800, fontSize: '1.2rem', marginBottom: '1rem', display: 'block' }}>Email</label>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <label style={{ color: 'white', fontWeight: 800, fontSize: '1.2rem', width: '130px', flexShrink: 0 }}>Email</label>
             <input 
               type="email" 
               name="email" 
@@ -77,12 +77,12 @@ const LoginPage = () => {
               onChange={handleChange} 
               required 
               placeholder="you@example.com" 
-              style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)' }}
+              style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.4)', width: '100%' }}
             />
           </div>
-          <div className="form-group">
-            <label style={{ color: 'white', fontWeight: 800, fontSize: '1.2rem', marginBottom: '1rem', display: 'block' }}>Password</label>
-            <div style={{ position: 'relative' }}>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <label style={{ color: 'white', fontWeight: 800, fontSize: '1.2rem', width: '130px', flexShrink: 0 }}>Password</label>
+            <div style={{ position: 'relative', flexGrow: 1, width: '100%' }}>
               <input 
                 type={showPassword ? "text" : "password"} 
                 name="password" 
