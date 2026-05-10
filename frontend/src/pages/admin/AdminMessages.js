@@ -114,7 +114,7 @@ function AdminMessages() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                    <strong style={{ fontSize: '0.95rem' }}>{msg.fullName}</strong>
+                    <strong style={{ fontSize: '0.95rem' }}>{msg.user?.name || msg.fullName}</strong>
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{new Date(msg.createdAt).toLocaleDateString()}</span>
                   </div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.25rem' }}>{msg.subject}</div>
@@ -133,8 +133,8 @@ function AdminMessages() {
                 <div>
                   <h2 style={{ marginBottom: '0.5rem' }}>{selectedMessage.subject}</h2>
                   <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', color: '#64748b' }}>
-                    <span><strong>From:</strong> {selectedMessage.fullName} ({selectedMessage.email})</span>
-                    {selectedMessage.phone && <span><strong>Phone:</strong> {selectedMessage.phone}</span>}
+                    <span><strong>From:</strong> {selectedMessage.user?.name || selectedMessage.fullName} ({selectedMessage.user?.email || selectedMessage.email})</span>
+                    {(selectedMessage.user?.phone || selectedMessage.phone) && <span><strong>Phone:</strong> {selectedMessage.user?.phone || selectedMessage.phone}</span>}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>

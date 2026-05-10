@@ -8,10 +8,10 @@ const {
   replyToMessage,
   submitMessage 
 } = require('../controllers/contactController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { protect, authorize, softProtect } = require('../middleware/authMiddleware');
 
-// Public route to submit a message
-router.post('/', submitMessage);
+// Protected route to submit a message (retrieves voter info automatically if logged in)
+router.post('/', softProtect, submitMessage);
 
 // Admin routes
 router.get('/admin', protect, authorize('admin'), getMessages);

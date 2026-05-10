@@ -1,9 +1,13 @@
 const ContactMessage = require('../models/ContactMessage');
+const User = require('../models/User');
+const { sendReplyEmail } = require('../services/emailService');
 const logActivity = require('../middleware/logger');
 
 exports.getMessages = async (req, res) => {
   try {
-    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+    const messages = await ContactMessage.find()
+      .populate('user', 'name email phone')
+      .sort({ createdAt: -1 });
     res.json(messages);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -58,10 +62,17 @@ exports.replyToMessage = async (req, res) => {
     message.repliedAt = new Date();
     message.isRead = true;
     await message.save();
+
+    // Send reply via email
+    // Prioritize populated user email, fallback to snapshot email
+    const recipientEmail = message.user?.email || message.email;
+    if (recipientEmail) {
+      await sendReplyEmail(recipientEmail, note, message.message);
+    }
     
     await logActivity({ req, action: 'Reply to Message', status: 'success', details: { messageId: id } });
     
-    res.json({ message: 'Reply saved successfully', data: message });
+    res.json({ message: 'Reply sent successfully via email', data: message });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -69,9 +80,29 @@ exports.replyToMessage = async (req, res) => {
 
 exports.submitMessage = async (req, res) => {
   try {
-    const { fullName, email, phone, subject, message } = req.body;
+    let { fullName, email, phone, subject, message } = req.body;
+    let userId = null;
+
+    // If user is logged in, retrieve their info automatically
+    if (req.user) {
+      userId = req.user.id;
+      fullName = req.user.name;
+      email = req.user.email;
+      phone = req.user.phone;
+    } else {
+      // Basic validation for guest users as per original logic
+      if (!fullName || !email) {
+        return res.status(400).json({ message: 'Full name and email are required' });
+      }
+    }
+
     const newMessage = await ContactMessage.create({
-      fullName, email, phone, subject, message
+      user: userId,
+      fullName,
+      email,
+      phone,
+      subject,
+      message
     });
     res.status(201).json(newMessage);
   } catch (err) {

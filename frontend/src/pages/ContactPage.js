@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
 import heroImg from '../assets/hero-bg.jpg';
 import './AuthPage.css';
 
 const ContactPage = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
@@ -39,16 +41,18 @@ const ContactPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation matching RegisterPage logic
-    if (form.fullName.trim().length < 2) {
-      return toast.error('Full Name must be at least 2 characters long');
+    // Validation for guests (matching original behavior)
+    if (!user) {
+      if (form.fullName.trim().length < 2) {
+        return toast.error('Full Name must be at least 2 characters long');
+      }
+      if (form.phone && form.phone.length !== 10 && form.phone.length !== 9) {
+        // Keep as it was
+      }
     }
 
-    if (form.phone && form.phone.length !== 10 && form.phone.length !== 9) {
-      // System registration uses 9 digits after +251. 
-      // For contact us, let's just ensure it's a reasonable digit count if provided.
-      // But "identical to registration" might mean the 9 digit rule.
-      // However, registration uses a prefix. Let's just stick to "digits only" for optional phone.
+    if (form.message.trim().length < 10) {
+      return toast.error('Message must be at least 10 characters long');
     }
 
     setLoading(true);
@@ -151,43 +155,51 @@ const ContactPage = () => {
         {/* Right Side: Contact Form */}
         <div>
           <form onSubmit={handleSubmit}>
-            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-              <label style={labelStyle}>Full Name</label>
-              <input 
-                type="text" 
-                name="fullName" 
-                value={form.fullName} 
-                onChange={handleChange} 
-                required 
-                style={inputStyle} 
-                placeholder="Enter your full name"
-              />
-            </div>
+            {user ? (
+              <p style={{ color: '#e2e8f0', marginBottom: '2rem', fontSize: '1rem', fontStyle: 'italic' }}>
+                Note: Your registered Full Name, Email, and Phone Number will be automatically sent with this message.
+              </p>
+            ) : (
+              <>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={labelStyle}>Full Name</label>
+                  <input 
+                    type="text" 
+                    name="fullName" 
+                    value={form.fullName} 
+                    onChange={handleChange} 
+                    required 
+                    style={inputStyle} 
+                    placeholder="Enter your full name"
+                  />
+                </div>
 
-            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-              <label style={labelStyle}>Email Address</label>
-              <input 
-                type="email" 
-                name="email" 
-                value={form.email} 
-                onChange={handleChange} 
-                required 
-                style={inputStyle} 
-                placeholder="email@example.com"
-              />
-            </div>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={labelStyle}>Email Address</label>
+                  <input 
+                    type="email" 
+                    name="email" 
+                    value={form.email} 
+                    onChange={handleChange} 
+                    required 
+                    style={inputStyle} 
+                    placeholder="email@example.com"
+                  />
+                </div>
 
-            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-              <label style={labelStyle}>Phone Number (Optional)</label>
-              <input 
-                type="text" 
-                name="phone" 
-                value={form.phone} 
-                onChange={handleChange} 
-                style={inputStyle} 
-                placeholder="e.g. 0912345678"
-              />
-            </div>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={labelStyle}>Phone Number (Optional)</label>
+                  <input 
+                    type="text" 
+                    name="phone" 
+                    value={form.phone} 
+                    onChange={handleChange} 
+                    style={inputStyle} 
+                    placeholder="e.g. 0912345678"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
               <label style={labelStyle}>Subject</label>
