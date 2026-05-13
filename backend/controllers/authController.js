@@ -113,6 +113,74 @@ exports.verifyOTP = async (req, res) => {
   }
 };
 
+// @desc  Get full voter profile
+// @route GET /api/auth/profile
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password -otpCode -otpExpire');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// @desc  Update voter profile (only allowed before voting)
+// @route PUT /api/auth/profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.hasVoted) {
+      return res.status(403).json({ message: 'Profile cannot be updated after voting.' });
+    }
+
+    const { firstName, lastName, email, age, phone, nationalId, profession, nationality, region, subCity, kebele } = req.body;
+
+    // Check unique fields against other users
+    if (email && email.toLowerCase() !== user.email) {
+      const existingEmail = await User.findOne({ email: email.toLowerCase(), _id: { $ne: user._id } });
+      if (existingEmail) return res.status(400).json({ message: 'Email already exists (taken).' });
+    }
+    if (phone && phone !== user.phone) {
+      const existingPhone = await User.findOne({ phone, _id: { $ne: user._id } });
+      if (existingPhone) return res.status(400).json({ message: 'Phone Number already exists (taken).' });
+    }
+    if (nationalId && nationalId !== user.nationalId) {
+      const existingId = await User.findOne({ nationalId, _id: { $ne: user._id } });
+      if (existingId) return res.status(400).json({ message: 'National ID (FAN) already exists (taken).' });
+    }
+
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (firstName || lastName) user.name = `${firstName || user.firstName} ${lastName || user.lastName}`;
+    if (email) user.email = email.toLowerCase();
+    if (age) user.age = age;
+    if (phone) user.phone = phone;
+    if (nationalId) user.nationalId = nationalId;
+    if (profession) user.profession = profession;
+    if (nationality) user.nationality = nationality;
+    if (region) user.region = region;
+    if (subCity) user.subCity = subCity;
+    if (kebele) user.kebele = kebele;
+
+    await user.save();
+
+    res.json({
+      message: 'Profile updated successfully.',
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, hasVoted: user.hasVoted }
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      const fieldName = field === 'email' ? 'Email' : field === 'phone' ? 'Phone Number' : 'National ID (FAN)';
+      return res.status(400).json({ message: `${fieldName} already exists (taken).` });
+    }
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // @desc  Reset Password
 // @route POST /api/auth/reset-password
 exports.resetPassword = async (req, res) => {

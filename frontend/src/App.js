@@ -26,6 +26,7 @@ import AdminVoteSystem from './pages/admin/AdminVoteSystem';
 import AdminMessages from './pages/admin/AdminMessages';
 import LandingPage from './pages/LandingPage';
 import ContactPage from './pages/ContactPage';
+import UpdateProfilePage from './pages/UpdateProfilePage';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
             <Route path="/candidates" element={<CandidatesPage />} />
             <Route path="/elections/:id" element={<ElectionDetailPage />} />
             <Route path="/results/:id" element={<ResultsPage />} />
+            <Route path="/profile" element={<UpdateProfilePage />} />
           </Route>
 
           {/* Admin protected */}

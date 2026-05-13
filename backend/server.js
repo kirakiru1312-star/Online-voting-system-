@@ -17,9 +17,22 @@ const app = express();
 const path = require('path');
 
 // Middleware
+const allowedOrigins = [
+  'https://online-voting-system-3bwp.vercel.app',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
 app.use(cors({
-  origin: 'https://online-voting-system-3bwp.vercel.app',
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy: origin ${origin} not allowed`));
+    }
+  },
+  credentials: true,
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
