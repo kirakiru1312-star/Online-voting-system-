@@ -67,3 +67,9 @@ MONGO_URI=mongodb://localhost:27017/voting_system
 JWT_SECRET=your_jwt_secret_here
 JWT_EXPIRES_IN=7d
 ```
+## backend 
+1, cd "c:\xampp\htdocs\Online Voting System\backend"
+2, npm run dev
+## frontend
+1, cd "c:\xampp\htdocs\Online Voting System\frontend"
+2, npm start
