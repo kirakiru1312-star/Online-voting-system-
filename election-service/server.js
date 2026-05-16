@@ -16,6 +16,9 @@ const app = express();
 
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
+// Serve uploads from the shared backend/uploads folder (contains all existing images)
+app.use('/uploads', express.static(path.join(__dirname, '..', 'backend', 'uploads')));
+// Also serve from local uploads folder for any new uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // All election/party/candidate/contact routes under /api

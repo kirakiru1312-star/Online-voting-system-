@@ -10,14 +10,18 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
-// All auth + admin-user routes
+// All auth + internal routes
 app.use('/api/auth', authRoutes);
+
+// Admin routes — gateway proxies /api/admin/stats → auth-service → /api/admin/stats
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/', (req, res) => res.json({ service: 'auth-service', status: 'running', port: process.env.PORT }));
