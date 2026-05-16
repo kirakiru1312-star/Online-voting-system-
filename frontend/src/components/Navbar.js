@@ -36,22 +36,25 @@ const Navbar = () => {
       <nav className="navbar">
         <div className="navbar-brand" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Link to={user?.role === 'admin' ? '/admin/system' : '/'}>🗳️ VoteSystem</Link>
-          <button
-            onClick={() => setShowVotingRules(true)}
-            style={{
-              background: 'none',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '0.3rem 0.75rem',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: '#4f46e5',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            📋 Voting Rules
-          </button>
+          {/* Voting Rules button — shown to voters and guests only, NOT to admins */}
+          {user?.role !== 'admin' && (
+            <button
+              onClick={() => setShowVotingRules(true)}
+              style={{
+                background: 'none',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '0.3rem 0.75rem',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: '#4f46e5',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              📋 Voting Rules
+            </button>
+          )}
         </div>
         <div className="navbar-links">
           {user ? (
