@@ -11,18 +11,18 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [p, e, c, s] = await Promise.all([
+        const [p, e, c, s] = await Promise.allSettled([
           api.get('/parties'),
           api.get('/elections'),
           api.get('/candidates'),
           api.get('/admin/stats')
         ]);
         setStats({
-          parties: p.data.length,
-          elections: e.data.length,
-          candidates: c.data.length,
-          totalVoters: s.data.totalVoters,
-          totalVoted: s.data.totalVoted
+          parties: p.status === 'fulfilled' ? p.value.data.length : 0,
+          elections: e.status === 'fulfilled' ? e.value.data.length : 0,
+          candidates: c.status === 'fulfilled' ? c.value.data.length : 0,
+          totalVoters: s.status === 'fulfilled' ? s.value.data.totalVoters : 0,
+          totalVoted: s.status === 'fulfilled' ? s.value.data.totalVoted : 0
         });
       } catch (err) {
         console.error('Failed to fetch dashboard data');

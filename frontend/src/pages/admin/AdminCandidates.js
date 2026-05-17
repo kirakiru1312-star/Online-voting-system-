@@ -18,12 +18,12 @@ function AdminCandidates() {
 
   const fetchInitialData = async () => {
     try {
-      const [candRes, elecRes] = await Promise.all([
+      const [candRes, elecRes] = await Promise.allSettled([
         api.get('/candidates'),
         api.get('/elections')
       ]);
-      setCandidates(candRes.data);
-      setElections(elecRes.data);
+      if (candRes.status === 'fulfilled') setCandidates(candRes.value.data);
+      if (elecRes.status === 'fulfilled') setElections(elecRes.value.data);
     } catch (err) {
       toast.error('Failed to fetch data');
     } finally {

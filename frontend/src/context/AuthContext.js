@@ -14,8 +14,11 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await api.get('/auth/me');
           setUser(res.data.user);
-        } catch {
-          logout();
+        } catch (err) {
+          // Only logout on 401 Unauthorized — not on network errors (service down)
+          if (err.response && err.response.status === 401) {
+            logout();
+          }
         }
       }
       setLoading(false);
