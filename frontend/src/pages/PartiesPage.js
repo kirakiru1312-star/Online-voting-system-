@@ -25,15 +25,17 @@ function PartiesPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [partyRes, voteCheckRes, electionRes] = await Promise.all([
+        const [partyRes, voteCheckRes, electionRes] = await Promise.allSettled([
           api.get('/parties'),
           api.get('/votes/check'),
           api.get('/elections')
         ]);
-        setParties(partyRes.data.filter(p => p.isActive));
-        setHasVoted(voteCheckRes.data.hasVoted);
-        const active = electionRes.data.find(e => e.status === 'active' && (e.type === 'party' || e.type === 'both'));
-        setActiveElection(active);
+        if (partyRes.status === 'fulfilled') setParties(partyRes.value.data.filter(p => p.isActive));
+        if (voteCheckRes.status === 'fulfilled') setHasVoted(voteCheckRes.value.data.hasVoted);
+        if (electionRes.status === 'fulfilled') {
+          const active = electionRes.value.data.find(e => e.status === 'active' && (e.type === 'party' || e.type === 'both'));
+          setActiveElection(active);
+        }
       } catch (err) {
         console.error('Failed to fetch data');
       } finally {

@@ -24,12 +24,12 @@ function CandidatesPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [candRes, voteCheckRes] = await Promise.all([
+        const [candRes, voteCheckRes] = await Promise.allSettled([
           api.get('/candidates'),
           api.get('/votes/check')
         ]);
-        setCandidates(candRes.data.filter(c => c.isActive));
-        setHasVoted(voteCheckRes.data.hasVoted);
+        if (candRes.status === 'fulfilled') setCandidates(candRes.value.data.filter(c => c.isActive));
+        if (voteCheckRes.status === 'fulfilled') setHasVoted(voteCheckRes.value.data.hasVoted);
       } catch (err) {
         console.error('Failed to fetch data');
       } finally {

@@ -18,14 +18,14 @@ function ElectionDetailPage() {
 
   const fetchData = async () => {
     try {
-      const [elecRes, candRes, voteRes] = await Promise.all([
+      const [elecRes, candRes, voteRes] = await Promise.allSettled([
         api.get(`/elections/${id}`),
         api.get(`/candidates?election=${id}`),
         api.get(`/votes/check/${id}`)
       ]);
-      setElection(elecRes.data);
-      setCandidates(candRes.data);
-      setHasVoted(voteRes.data.hasVoted);
+      if (elecRes.status === 'fulfilled') setElection(elecRes.value.data);
+      if (candRes.status === 'fulfilled') setCandidates(candRes.value.data);
+      if (voteRes.status === 'fulfilled') setHasVoted(voteRes.value.data.hasVoted);
     } catch (err) {
       toast.error('Error loading election data');
     } finally {
