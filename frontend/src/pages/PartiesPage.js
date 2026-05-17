@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import ServiceUnavailable from '../components/ServiceUnavailable';
 
 
 
@@ -17,6 +18,7 @@ function PartiesPage() {
   const [showOtpStep, setShowOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [expandedParties, setExpandedParties] = useState({});
+  const [serviceError, setServiceError] = useState(false);
 
   const togglePartyExpand = (id) => {
     setExpandedParties(prev => ({ ...prev, [id]: !prev[id] }));
@@ -30,7 +32,11 @@ function PartiesPage() {
           api.get('/votes/check'),
           api.get('/elections')
         ]);
-        if (partyRes.status === 'fulfilled') setParties(partyRes.value.data.filter(p => p.isActive));
+        if (partyRes.status === 'fulfilled') {
+          setParties(partyRes.value.data.filter(p => p.isActive));
+        } else if (!partyRes.reason?.response || partyRes.reason?.response?.status === 502 || partyRes.reason?.response?.status === 503) {
+          setServiceError(true);
+        }
         if (voteCheckRes.status === 'fulfilled') setHasVoted(voteCheckRes.value.data.hasVoted);
         if (electionRes.status === 'fulfilled') {
           const active = electionRes.value.data.find(e => e.status === 'active' && (e.type === 'party' || e.type === 'both'));
@@ -122,6 +128,8 @@ function PartiesPage() {
 
       {loading ? (
         <p>Loading parties...</p>
+      ) : serviceError ? (
+        <ServiceUnavailable />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
           {parties.map(party => (

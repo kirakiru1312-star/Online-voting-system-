@@ -4,10 +4,12 @@ import api from '../api/axios';
 import { toast } from 'react-toastify';
 import heroImg from '../assets/hero-bg.jpg';
 import './AuthPage.css';
+import ServiceUnavailable from '../components/ServiceUnavailable';
 
 const ContactPage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [submitServiceError, setSubmitServiceError] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -56,12 +58,17 @@ const ContactPage = () => {
     }
 
     setLoading(true);
+    setSubmitServiceError(false);
     try {
       await api.post('/contact', form);
       toast.success('Your message has been sent successfully!');
       handleClear();
     } catch (err) {
-      toast.error('Failed to send message. Please try again.');
+      if (!err.response || err.response.status === 502 || err.response.status === 503) {
+        setSubmitServiceError(true);
+      } else {
+        toast.error('Failed to send message. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -251,6 +258,11 @@ const ContactPage = () => {
                 Delete All
               </button>
             </div>
+            {submitServiceError && (
+              <div style={{ marginTop: '1rem' }}>
+                <ServiceUnavailable />
+              </div>
+            )}
           </form>
         </div>
       </div>

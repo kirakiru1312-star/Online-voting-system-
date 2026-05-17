@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { toast } from 'react-toastify';
+import ServiceUnavailable from '../../components/ServiceUnavailable';
 
 function AdminCandidates() {
   const [candidates, setCandidates] = useState([]);
   const [elections, setElections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [serviceError, setServiceError] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '', bio: '', election: '', referenceUrl: ''
@@ -23,6 +25,9 @@ function AdminCandidates() {
         api.get('/elections')
       ]);
       if (candRes.status === 'fulfilled') setCandidates(candRes.value.data);
+      else if (!candRes.reason?.response || candRes.reason?.response?.status === 502 || candRes.reason?.response?.status === 503) {
+        setServiceError(true);
+      }
       if (elecRes.status === 'fulfilled') setElections(elecRes.value.data);
     } catch (err) {
       toast.error('Failed to fetch data');
@@ -141,7 +146,7 @@ function AdminCandidates() {
 
       <div className="card">
         <h2>Independent Candidates List</h2>
-        {loading ? <p>Loading...</p> : (
+        {loading ? <p>Loading...</p> : serviceError ? <ServiceUnavailable /> : (
           <div className="table-container">
             <table>
               <thead>

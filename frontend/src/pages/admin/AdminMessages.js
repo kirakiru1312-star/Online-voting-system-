@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { toast } from 'react-toastify';
+import ServiceUnavailable from '../../components/ServiceUnavailable';
 
 function AdminMessages() {
   const [messages, setMessages] = useState([]);
   const [stats, setStats] = useState({ total: 0, unread: 0, read: 0 });
   const [loading, setLoading] = useState(true);
+  const [serviceError, setServiceError] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [replyText, setReplyText] = useState('');
 
@@ -19,7 +21,11 @@ function AdminMessages() {
       const res = await api.get('/contact/admin');
       setMessages(res.data);
     } catch (err) {
-      toast.error('Failed to fetch messages');
+      if (!err.response || err.response.status === 502 || err.response.status === 503) {
+        setServiceError(true);
+      } else {
+        toast.error('Failed to fetch messages');
+      }
     } finally {
       setLoading(false);
     }
@@ -99,7 +105,7 @@ function AdminMessages() {
             <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Inbox</h3>
           </div>
           <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-            {loading ? <p style={{ padding: '2rem' }}>Loading...</p> : messages.length === 0 ? <p style={{ padding: '2rem' }}>No messages found.</p> : (
+            {loading ? <p style={{ padding: '2rem' }}>Loading...</p> : serviceError ? <div style={{ padding: '1.5rem' }}><ServiceUnavailable /></div> : messages.length === 0 ? <p style={{ padding: '2rem' }}>No messages found.</p> : (
               messages.map(msg => (
                 <div 
                   key={msg._id} 

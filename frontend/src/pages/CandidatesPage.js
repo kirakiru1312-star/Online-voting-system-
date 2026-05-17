@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import ServiceUnavailable from '../components/ServiceUnavailable';
 
 
 
@@ -16,6 +17,7 @@ function CandidatesPage() {
   const [showOtpStep, setShowOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [expandedCandidates, setExpandedCandidates] = useState({});
+  const [serviceError, setServiceError] = useState(false);
 
   const toggleCandidateExpand = (id) => {
     setExpandedCandidates(prev => ({ ...prev, [id]: !prev[id] }));
@@ -28,7 +30,11 @@ function CandidatesPage() {
           api.get('/candidates'),
           api.get('/votes/check')
         ]);
-        if (candRes.status === 'fulfilled') setCandidates(candRes.value.data.filter(c => c.isActive));
+        if (candRes.status === 'fulfilled') {
+          setCandidates(candRes.value.data.filter(c => c.isActive));
+        } else if (!candRes.reason?.response || candRes.reason?.response?.status === 502 || candRes.reason?.response?.status === 503) {
+          setServiceError(true);
+        }
         if (voteCheckRes.status === 'fulfilled') setHasVoted(voteCheckRes.value.data.hasVoted);
       } catch (err) {
         console.error('Failed to fetch data');
@@ -105,6 +111,8 @@ function CandidatesPage() {
 
       {loading ? (
         <p>Loading candidates...</p>
+      ) : serviceError ? (
+        <ServiceUnavailable />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
           {candidates.map(candidate => {
