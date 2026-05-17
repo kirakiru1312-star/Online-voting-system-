@@ -287,7 +287,7 @@ const LoginPage = () => {
                     {newPassword.length > 0 && (
                       (/[a-zA-Z]/.test(newPassword) && /[0-9]/.test(newPassword) && /[^a-zA-Z0-9]/.test(newPassword) && newPassword.length >= 8)
                         ? <span style={{ color: 'green' }}>strong</span>
-                        : <span style={{ color: 'red' }}>password must be &gt;= 3 character and &gt;= 8 length</span>
+                        : <span style={{ color: 'red' }}>password must be &gt;= 8 characters with at least one letter, one number, and one symbol</span>
                     )}
                   </div>
                 </div>
