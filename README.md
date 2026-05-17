@@ -99,9 +99,9 @@ The frontend always talks to port 5000. The Gateway decides which service to for
 
 **Example:**
 ```
-Voter logs in  → Gateway → Auth Service (5001)
+Voter logs in       → Gateway → Auth Service     (5001)
 Voter views parties → Gateway → Election Service (5002)
-Voter casts vote → Gateway → Voting Service (5003)
+Voter casts vote    → Gateway → Voting Service   (5003)
 ```
 
 The frontend never needs to know about the 3 services. It only talks to the Gateway.
@@ -128,6 +128,176 @@ Services communicate using HTTP API calls. Example:
 3. Auth Service replies → "Yes, real user. Not voted yet."
 4. Voting Service saves the vote → marks user as voted in **Auth Service**
 5. Done ✅
+
+---
+
+## ❓ Instructor Q&A — Distributed System Explanation
+
+---
+
+### 1️⃣ How Many Backends and Databases Are Used?
+
+This system uses **4 backend services** and **4 databases** in total.
+
+#### Backend Services:
+
+| # | Service | Port | Responsibility |
+|---|---|---|---|
+| 1 | `backend/` (original) | 5000 | Original monolithic backend (kept for safety) |
+| 2 | `auth-service/` | 5001 | User registration, login, JWT, audit logs |
+| 3 | `election-service/` | 5002 | Elections, parties, candidates, contact |
+| 4 | `voting-service/` | 5003 | Vote casting, results, vote logs |
+| — | `gateway/` | 5000 | Routes requests to the correct service |
+
+> **Simple example:** Think of 3 separate restaurants in one food court. Each restaurant (service) cooks its own food (handles its own data). The food court entrance (gateway) directs customers to the right restaurant.
+
+#### Each backend runs on a different port:
+- Port `5001` → only Auth Service runs here
+- Port `5002` → only Election Service runs here
+- Port `5003` → only Voting Service runs here
+
+This means they are **completely independent** — stopping one does not stop the others.
+
+---
+
+#### ▶️ How to Start Each Backend Individually:
+
+```bash
+# Start only Auth Service
+cd auth-service
+npm start
+
+# Start only Election Service
+cd election-service
+npm start
+
+# Start only Voting Service
+cd voting-service
+npm start
+
+# Start only API Gateway
+cd gateway
+npm start
+```
+
+#### ▶️ How to Start All Together (using batch file):
+
+Simply **double-click** `start-all.bat` in the project root folder.
+It opens 4 separate terminal windows automatically, one for each service.
+
+Or from PowerShell:
+```powershell
+.\start-all.bat
+```
+
+---
+
+#### 👁️ How to View Each Database:
+
+**Using MongoDB Compass (visual tool):**
+1. Open MongoDB Compass
+2. Connect to: `mongodb://127.0.0.1:27017`
+3. In the left sidebar you will see all databases:
+```
+db_auth        ← click to see: users, auditlogs
+db_election    ← click to see: elections, parties, candidates
+db_voting      ← click to see: finalvotes, votelogs
+voting_system  ← original database (untouched)
+```
+4. Click any collection name to browse all documents inside it.
+
+**Using MongoDB Shell (command line):**
+```bash
+mongosh
+show dbs
+use db_auth
+show collections
+db.users.find()
+```
+
+---
+
+### 2️⃣ Which Backend Connects to Which Database?
+
+Each backend service connects **only to its own database** using a MongoDB connection string defined in its `.env` file.
+
+#### Connection Map:
+
+| Backend Service | Connects To | Connection String (in .env) |
+|---|---|---|
+| `auth-service` | `db_auth` | `MONGO_URI=mongodb://127.0.0.1:27017/db_auth` |
+| `election-service` | `db_election` | `MONGO_URI=mongodb://127.0.0.1:27017/db_election` |
+| `voting-service` | `db_voting` | `MONGO_URI=mongodb://127.0.0.1:27017/db_voting` |
+| `backend` (original) | `voting_system` | `MONGO_URI=mongodb://127.0.0.1:27017/voting_system` |
+
+#### Technology Used to Connect:
+- **Mongoose** (MongoDB driver for Node.js) is used in every service
+- Each service calls `mongoose.connect(process.env.MONGO_URI)` at startup
+- The `MONGO_URI` value in each `.env` file points to a different database name
+
+#### Simple Example (not full code):
+```
+auth-service/.env       →  MONGO_URI = .../db_auth
+election-service/.env   →  MONGO_URI = .../db_election
+voting-service/.env     →  MONGO_URI = .../db_voting
+```
+
+When `auth-service` starts, it connects **only** to `db_auth`.
+It cannot read or write to `db_election` or `db_voting`.
+This is called **data isolation**.
+
+#### Why is this separation important?
+
+| Reason | Explanation |
+|---|---|
+| **Security** | User passwords are only in `db_auth`. The voting service cannot access them. |
+| **Performance** | High-traffic vote writes go to `db_voting` without slowing down user login in `db_auth`. |
+| **Independence** | Each service can be updated, restarted, or scaled without affecting others. |
+| **Fault isolation** | If `db_election` has a problem, voting and login still work normally. |
+
+> **Simple example:** Your bank keeps your account balance in one system and your transaction history in another. If the transaction system is slow, you can still check your balance. Same idea here.
+
+---
+
+### 3️⃣ Why is the Old Backend (`backend/`) and Old Database (`voting_system`) Still There?
+
+#### Short Answer:
+The old backend and database were **kept intentionally** and were **never deleted or modified**. This is the correct and safe approach when upgrading a real system.
+
+#### Detailed Explanation:
+
+**Why they were NOT removed:**
+
+| Reason | Explanation |
+|---|---|
+| **Data safety** | `voting_system` contains all real existing data — voters, parties, elections, votes. Deleting it would permanently lose this data. |
+| **Feature safety** | The original `backend/` contains working logic for all features. Removing it before the new services are fully tested would break the system. |
+| **Project constraints** | The project requirement strictly states: "Do NOT remove or change any existing functionality." |
+| **Fallback option** | If any new service has a problem, the original backend can still be used as a backup. |
+
+**Does keeping the old backend violate distributed system principles?**
+
+**No.** In real-world distributed systems, the old system is always kept running during the transition period. This is called the **Strangler Fig Pattern** — a well-known industry approach where:
+
+1. You build new services around the old system
+2. You gradually move traffic to the new services
+3. The old system stays running until the new one is fully stable
+4. Only then (optionally) is the old system retired
+
+**Real-world example:**
+> Netflix did not shut down their old monolithic system overnight. They slowly moved features to microservices over several years while keeping the old system running. This is exactly what this project demonstrates.
+
+#### Summary:
+
+```
+voting_system database  →  still exists, contains original data ✅
+backend/ folder         →  still exists, still works ✅
+New distributed services →  added on top, use separate databases ✅
+No data was lost        →  migration script copied everything ✅
+No features were broken →  all original features still work ✅
+```
+
+Keeping the old system running alongside the new distributed services is **not a mistake** — it is the **correct, professional, and safe** way to upgrade a real system.
 
 ---
 
