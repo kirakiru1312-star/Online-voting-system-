@@ -20,6 +20,8 @@ const LoginPage = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -69,7 +71,20 @@ const LoginPage = () => {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (newPassword.length < 8) return toast.error('Password must be at least 8 characters.');
+
+    // Identical validation to registration password rules
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    const hasSymbol = /[^a-zA-Z0-9]/.test(newPassword);
+
+    if (newPassword.length < 8 || !hasLetter || !hasNumber || !hasSymbol) {
+      return toast.error('Password must be at least 8 characters long and contain at least one letter, one number, and one symbol');
+    }
+
+    if (newPassword !== confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
+
     setForgotLoading(true);
     try {
       await api.post('/auth/reset-password', { email: forgotEmail, newPassword });
@@ -79,6 +94,8 @@ const LoginPage = () => {
       setForgotEmail('');
       setForgotOtp('');
       setNewPassword('');
+      setConfirmPassword('');
+      setShowResetPassword(false);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to reset password.');
     } finally {
@@ -236,16 +253,74 @@ const LoginPage = () => {
             {forgotStep === 'reset' && (
               <form onSubmit={handleResetPassword}>
                 <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Identity verified. Please enter your new password.</p>
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <div className="form-group" style={{ marginBottom: '0.5rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>New Password</label>
-                  <input 
-                    type="password" 
-                    className="form-control"
-                    value={newPassword} 
-                    onChange={(e) => setNewPassword(e.target.value)} 
-                    required 
-                    placeholder="Min 8 characters"
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      type={showResetPassword ? "text" : "password"}
+                      className="form-control"
+                      value={newPassword} 
+                      onChange={(e) => setNewPassword(e.target.value)} 
+                      required 
+                      placeholder="Min 8 chars, letter, number, symbol"
+                      style={{ paddingRight: '3rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPassword(!showResetPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem',
+                        color: '#64748b'
+                      }}
+                    >
+                      {showResetPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
+                  <div style={{ marginTop: '0.4rem', fontSize: '0.82rem', fontWeight: 'bold' }}>
+                    {newPassword.length > 0 && (
+                      (/[a-zA-Z]/.test(newPassword) && /[0-9]/.test(newPassword) && /[^a-zA-Z0-9]/.test(newPassword) && newPassword.length >= 8)
+                        ? <span style={{ color: 'green' }}>strong</span>
+                        : <span style={{ color: 'red' }}>password must be &gt;= 3 character and &gt;= 8 length</span>
+                    )}
+                  </div>
+                </div>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Confirm Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      type={showResetPassword ? "text" : "password"}
+                      className="form-control"
+                      value={confirmPassword} 
+                      onChange={(e) => setConfirmPassword(e.target.value)} 
+                      required 
+                      placeholder="Re-enter new password"
+                      style={{ paddingRight: '3rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetPassword(!showResetPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem',
+                        color: '#64748b'
+                      }}
+                    >
+                      {showResetPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ width: '100%' }}>
                   {forgotLoading ? 'Updating...' : 'Update Password'}
