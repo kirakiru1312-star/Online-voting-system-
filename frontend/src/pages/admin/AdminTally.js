@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import ServiceUnavailable from '../../components/ServiceUnavailable';
+import ServiceUnavailableMessage from '../../components/ServiceUnavailableMessage';
 
 function AdminTally() {
   const [data, setData] = useState({ parties: [], candidates: [] });
@@ -20,10 +20,8 @@ function AdminTally() {
       const sortedCandidates = (res.data.candidates || []).sort((a, b) => b.voteCount - a.voteCount);
       setData({ parties: sortedParties, candidates: sortedCandidates });
     } catch (err) {
-      if (!err.response || err.response.status === 502 || err.response.status === 503) {
-        setServiceError(true);
-      }
       console.error('Failed to fetch tally');
+      setServiceError(true);
     } finally {
       setLoading(false);
     }
@@ -47,7 +45,7 @@ function AdminTally() {
         </button>
       </div>
 
-      {loading ? <p>Loading tally data...</p> : serviceError ? <ServiceUnavailable /> : (
+      {loading ? <p>Loading tally data...</p> : serviceError ? <ServiceUnavailableMessage /> : (
         <>
           <div className="card" style={{ marginBottom: '4rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>

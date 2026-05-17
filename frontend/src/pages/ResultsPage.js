@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
-import ServiceUnavailable from '../components/ServiceUnavailable';
+import ServiceUnavailableMessage from '../components/ServiceUnavailableMessage';
 
 function ResultsPage() {
   const { id } = useParams();
@@ -14,11 +14,10 @@ function ResultsPage() {
       try {
         const res = await api.get(`/results/${id}`);
         setData(res.data);
+        setServiceError(false);
       } catch (err) {
-        if (!err.response || err.response.status === 502 || err.response.status === 503) {
-          setServiceError(true);
-        }
         console.error('Failed to fetch results');
+        setServiceError(true);
       } finally {
         setLoading(false);
       }
@@ -33,7 +32,7 @@ function ResultsPage() {
   };
 
   if (loading) return <div className="container"><p>Loading results...</p></div>;
-  if (serviceError) return <div className="container"><ServiceUnavailable /></div>;
+  if (serviceError) return <div className="container"><ServiceUnavailableMessage /></div>;
   if (!data) return <div className="container"><p>No results found.</p></div>;
 
   if (data.election.status !== 'completed') {

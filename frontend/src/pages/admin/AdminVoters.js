@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import ServiceUnavailable from '../../components/ServiceUnavailable';
 
 function AdminVoters() {
   const [voters, setVoters] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [serviceError, setServiceError] = useState(false);
 
   useEffect(() => {
     fetchVoters();
@@ -16,9 +14,6 @@ function AdminVoters() {
       const res = await api.get('/admin/voters');
       setVoters(res.data);
     } catch (err) {
-      if (!err.response || err.response.status === 502 || err.response.status === 503) {
-        setServiceError(true);
-      }
       console.error('Failed to fetch voters');
     } finally {
       setLoading(false);
@@ -32,7 +27,7 @@ function AdminVoters() {
         <p style={{ color: '#64748b' }}>Full registry of citizens registered in the voting system. Passwords are securely encrypted and hidden.</p>
       </div>
 
-      {loading ? <p>Loading voter database...</p> : serviceError ? <ServiceUnavailable /> : (
+      {loading ? <p>Loading voter database...</p> : (
         <div className="card">
           <div className="table-container">
             <table>

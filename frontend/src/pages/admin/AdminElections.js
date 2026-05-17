@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { toast } from 'react-toastify';
-import ServiceUnavailable from '../../components/ServiceUnavailable';
 
 function AdminElections() {
   const [elections, setElections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [serviceError, setServiceError] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -26,11 +24,7 @@ function AdminElections() {
       const res = await api.get('/elections');
       setElections(res.data);
     } catch (err) {
-      if (!err.response || err.response.status === 502 || err.response.status === 503) {
-        setServiceError(true);
-      } else {
-        toast.error('Failed to fetch elections');
-      }
+      toast.error('Failed to fetch elections');
     } finally {
       setLoading(false);
     }
@@ -150,7 +144,7 @@ function AdminElections() {
 
       <div className="card">
         <h2>All Elections</h2>
-        {loading ? <p>Loading elections...</p> : serviceError ? <ServiceUnavailable /> : (
+        {loading ? <p>Loading elections...</p> : (
           <div className="table-container">
             <table>
               <thead>

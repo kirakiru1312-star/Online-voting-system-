@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import voterHero from '../assets/voter-hero.png';
-import ServiceUnavailable from '../components/ServiceUnavailable';
+import ServiceUnavailableMessage from '../components/ServiceUnavailableMessage';
 
 function ElectionsPage() {
   const [elections, setElections] = useState([]);
@@ -14,11 +14,10 @@ function ElectionsPage() {
       try {
         const res = await api.get('/elections');
         setElections(res.data);
+        setServiceError(false);
       } catch (err) {
-        if (!err.response || err.response.status === 502 || err.response.status === 503) {
-          setServiceError(true);
-        }
         console.error('Failed to fetch data');
+        setServiceError(true);
       } finally {
         setLoading(false);
       }
@@ -53,7 +52,7 @@ function ElectionsPage() {
       {loading ? (
         <p>Loading elections...</p>
       ) : serviceError ? (
-        <ServiceUnavailable />
+        <ServiceUnavailableMessage />
       ) : (
         <>
           <div style={{ marginBottom: '4rem' }}>

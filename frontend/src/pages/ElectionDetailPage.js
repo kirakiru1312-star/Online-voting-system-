@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
-import ServiceUnavailable from '../components/ServiceUnavailable';
 
 function ElectionDetailPage() {
   const { id } = useParams();
@@ -12,7 +11,6 @@ function ElectionDetailPage() {
   const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
-  const [serviceError, setServiceError] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -26,9 +24,6 @@ function ElectionDetailPage() {
         api.get(`/votes/check/${id}`)
       ]);
       if (elecRes.status === 'fulfilled') setElection(elecRes.value.data);
-      else if (!elecRes.reason?.response || elecRes.reason?.response?.status === 502 || elecRes.reason?.response?.status === 503) {
-        setServiceError(true);
-      }
       if (candRes.status === 'fulfilled') setCandidates(candRes.value.data);
       if (voteRes.status === 'fulfilled') setHasVoted(voteRes.value.data.hasVoted);
     } catch (err) {
@@ -60,7 +55,6 @@ function ElectionDetailPage() {
   };
 
   if (loading) return <div className="container"><p>Loading election...</p></div>;
-  if (serviceError) return <div className="container"><ServiceUnavailable /></div>;
   if (!election) return <div className="container"><p>Election not found.</p></div>;
 
   return (

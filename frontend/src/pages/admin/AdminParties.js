@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import { toast } from 'react-toastify';
-import ServiceUnavailable from '../../components/ServiceUnavailable';
 
 function AdminParties() {
   const [parties, setParties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [serviceError, setServiceError] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -25,11 +23,7 @@ function AdminParties() {
       const res = await api.get('/parties');
       setParties(res.data);
     } catch (err) {
-      if (!err.response || err.response.status === 502 || err.response.status === 503) {
-        setServiceError(true);
-      } else {
-        toast.error('Failed to fetch parties');
-      }
+      toast.error('Failed to fetch parties');
     } finally {
       setLoading(false);
     }
@@ -153,7 +147,7 @@ function AdminParties() {
 
       <div className="card">
         <h2>Registered Parties</h2>
-        {loading ? <p>Loading parties...</p> : serviceError ? <ServiceUnavailable /> : (
+        {loading ? <p>Loading parties...</p> : (
           <div className="table-container">
             <table>
               <thead>

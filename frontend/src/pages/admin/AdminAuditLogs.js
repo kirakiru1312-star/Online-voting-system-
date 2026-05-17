@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import ServiceUnavailable from '../../components/ServiceUnavailable';
+import ServiceUnavailableMessage from '../../components/ServiceUnavailableMessage';
 
 function AdminAuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -18,10 +18,8 @@ function AdminAuditLogs() {
       const res = await api.get('/admin/audit-logs');
       setLogs(res.data);
     } catch (err) {
-      if (!err.response || err.response.status === 502 || err.response.status === 503) {
-        setServiceError(true);
-      }
       console.error('Failed to fetch audit logs');
+      setServiceError(true);
     } finally {
       setLoading(false);
     }
@@ -47,7 +45,7 @@ function AdminAuditLogs() {
         <button onClick={fetchLogs} className="btn btn-primary">Refresh Logs</button>
       </div>
 
-      {loading ? <p>Loading activity logs...</p> : serviceError ? <ServiceUnavailable /> : (
+      {loading ? <p>Loading activity logs...</p> : (
         <div className="card">
           <div className="table-container">
             <table>
