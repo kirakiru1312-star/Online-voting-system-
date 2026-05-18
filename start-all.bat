@@ -8,11 +8,12 @@ echo ================================================
 echo  Distributed Online Voting System - Starting...
 echo ================================================
 echo.
-echo  Services:
-echo    Auth Service    → port 5001
-echo    Election Service → port 5002
-echo    Voting Service  → port 5003
-echo    API Gateway     → port 5000
+
+:: Kill any existing Node processes to free ports
+echo [0/4] Stopping any existing Node.js processes...
+taskkill /F /IM node.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+echo       Done. All ports cleared.
 echo.
 
 echo [1/4] Starting Auth Service (port 5001)...
@@ -43,10 +44,6 @@ echo  Voting Svc     : http://localhost:5003
 echo.
 echo  Wait for each window to show "Running on port..."
 echo  Then start the frontend: cd frontend ^&^& npm start
-echo.
-echo  NOTE: The old backend/ folder is decommissioned.
-echo        Do NOT run backend/server.js — it will conflict
-echo        with the gateway on port 5000.
 echo.
 pause
 endlocal

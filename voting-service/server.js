@@ -32,7 +32,14 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('[voting-service] Connected to DB: db_voting');
-    app.listen(PORT, () => console.log(`[voting-service] Running on port ${PORT}`));
+    const server = app.listen(PORT, () => console.log(`[voting-service] Running on port ${PORT}`));
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`[voting-service] ERROR: Port ${PORT} is already in use.`);
+        console.error(`[voting-service] Run: taskkill /F /IM node.exe  then restart.`);
+        process.exit(1);
+      } else { throw err; }
+    });
   })
   .catch((err) => {
     console.error('[voting-service] DB connection error:', err);
