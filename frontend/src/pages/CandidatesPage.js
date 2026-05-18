@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
-import ServiceUnavailableMessage from '../components/ServiceUnavailableMessage';
+import ServiceUnavailable from '../components/ServiceUnavailable';
 
 
 
@@ -17,7 +17,8 @@ function CandidatesPage() {
   const [showOtpStep, setShowOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [expandedCandidates, setExpandedCandidates] = useState({});
-  const [voteServiceError, setVoteServiceError] = useState(false);
+  const [electionServiceDown, setElectionServiceDown] = useState(false);
+  const [votingServiceDown, setVotingServiceDown] = useState(false);
 
   const toggleCandidateExpand = (id) => {
     setExpandedCandidates(prev => ({ ...prev, [id]: !prev[id] }));
@@ -31,8 +32,9 @@ function CandidatesPage() {
           api.get('/votes/check')
         ]);
         if (candRes.status === 'fulfilled') setCandidates(candRes.value.data.filter(c => c.isActive));
-        if (voteCheckRes.status === 'rejected') setVoteServiceError(true);
+        else setElectionServiceDown(true);
         if (voteCheckRes.status === 'fulfilled') setHasVoted(voteCheckRes.value.data.hasVoted);
+        else setVotingServiceDown(true);
       } catch (err) {
         console.error('Failed to fetch data');
       } finally {
@@ -46,6 +48,7 @@ function CandidatesPage() {
     if (user?.role === 'admin') return toast.warning('Admin accounts cannot vote.');
     if (hasVoted) return toast.info('You have already cast your vote.');
     if (!candidate.election || candidate.election.status !== 'active') return toast.error('Election not active.');
+    if (votingServiceDown) return toast.error('This service is temporarily unavailable at the moment. Please try again later.');
     setSelectedCandidate(candidate);
     setShowConfirmModal(true);
     setShowOtpStep(false);
@@ -108,6 +111,8 @@ function CandidatesPage() {
 
       {loading ? (
         <p>Loading candidates...</p>
+      ) : electionServiceDown ? (
+        <ServiceUnavailable />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
           {candidates.map(candidate => {
@@ -137,16 +142,19 @@ function CandidatesPage() {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto' }}>
-                  <button onClick={() => candidate.referenceUrl && window.open(candidate.referenceUrl, '_blank')} 
+                  <button 
+                    onClick={() => candidate.referenceUrl && window.open(candidate.referenceUrl, '_blank')} 
                     className="btn" 
                     style={{ width: '100%', padding: '1rem', background: '#f1f5f9', color: '#475569', fontWeight: 600 }}
                   >
                     Account Details
                   </button>
-                  {voteServiceError ? (
-                    <button className="btn" disabled style={{ width: '100%', padding: '1rem', background: '#fed7aa', color: '#9a3412', fontWeight: 600, cursor: 'not-allowed' }}>
-                      ⚠️ Voting Service Unavailable
-                    </button>
+                  {votingServiceDown ? (
+                    <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', padding: '0.75rem', textAlign: 'center' }}>
+                      <p style={{ color: '#c2410c', fontSize: '0.85rem', margin: 0 }}>
+                        This service is temporarily unavailable at the moment. Please try again later.
+                      </p>
+                    </div>
                   ) : (
                     <button onClick={() => handleVoteClick(candidate)} className="btn btn-primary" disabled={!canVote} style={{ width: '100%', padding: '1rem', background: canVote ? '#ec4899' : '#94a3b8' }}>
                       {hasVoted ? 'Vote Cast' : isInactive ? 'Election Closed' : user?.role === 'admin' ? 'Admin Restricted' : 'Elect Candidate'}

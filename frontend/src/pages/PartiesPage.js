@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
-import ServiceUnavailableMessage from '../components/ServiceUnavailableMessage';
+import ServiceUnavailable from '../components/ServiceUnavailable';
 
 
 
@@ -18,7 +18,8 @@ function PartiesPage() {
   const [showOtpStep, setShowOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [expandedParties, setExpandedParties] = useState({});
-  const [voteServiceError, setVoteServiceError] = useState(false);
+  const [electionServiceDown, setElectionServiceDown] = useState(false);
+  const [votingServiceDown, setVotingServiceDown] = useState(false);
 
   const togglePartyExpand = (id) => {
     setExpandedParties(prev => ({ ...prev, [id]: !prev[id] }));
@@ -33,8 +34,9 @@ function PartiesPage() {
           api.get('/elections')
         ]);
         if (partyRes.status === 'fulfilled') setParties(partyRes.value.data.filter(p => p.isActive));
-        if (voteCheckRes.status === 'rejected') setVoteServiceError(true);
+        else setElectionServiceDown(true);
         if (voteCheckRes.status === 'fulfilled') setHasVoted(voteCheckRes.value.data.hasVoted);
+        else setVotingServiceDown(true);
         if (electionRes.status === 'fulfilled') {
           const active = electionRes.value.data.find(e => e.status === 'active' && (e.type === 'party' || e.type === 'both'));
           setActiveElection(active);
@@ -52,6 +54,7 @@ function PartiesPage() {
     if (user?.role === 'admin') return toast.warning('Admin accounts cannot vote.');
     if (hasVoted) return toast.info('You have already cast your vote.');
     if (!activeElection) return toast.error('Voting is currently disabled.');
+    if (votingServiceDown) return toast.error('This service is temporarily unavailable at the moment. Please try again later.');
     setSelectedParty(party);
     setShowConfirmModal(true);
     setShowOtpStep(false);
@@ -125,6 +128,8 @@ function PartiesPage() {
 
       {loading ? (
         <p>Loading parties...</p>
+      ) : electionServiceDown ? (
+        <ServiceUnavailable />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
           {parties.map(party => (
@@ -155,10 +160,12 @@ function PartiesPage() {
                 >
                   Account Details
                 </button>
-                {voteServiceError ? (
-                  <button className="btn" disabled style={{ width: '100%', padding: '1rem', background: '#fed7aa', color: '#9a3412', fontWeight: 600, cursor: 'not-allowed' }}>
-                    ⚠️ Voting Service Unavailable
-                  </button>
+                {votingServiceDown ? (
+                  <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', padding: '0.75rem', textAlign: 'center' }}>
+                    <p style={{ color: '#c2410c', fontSize: '0.85rem', margin: 0 }}>
+                      This service is temporarily unavailable at the moment. Please try again later.
+                    </p>
+                  </div>
                 ) : (
                   <button onClick={() => handleVoteClick(party)} className="btn btn-primary" disabled={hasVoted || !activeElection || user?.role === 'admin'} style={{ width: '100%', padding: '1rem', background: (hasVoted || !activeElection || user?.role === 'admin') ? '#94a3b8' : 'var(--primary)' }}>
                     {hasVoted ? 'Vote Cast' : !activeElection ? 'Election Closed' : user?.role === 'admin' ? 'Admin Restricted' : 'Elect the Party'}

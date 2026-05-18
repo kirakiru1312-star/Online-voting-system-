@@ -4,11 +4,13 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import heroImg from '../assets/hero-bg.jpg';
 import './AuthPage.css';
+import ServiceUnavailable from '../components/ServiceUnavailable';
 
 const UpdateProfilePage = () => {
   const { user, login, token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [serviceDown, setServiceDown] = useState(false);
   const [phoneFirstDigit, setPhoneFirstDigit] = useState('9');
   const [phoneRemaining, setPhoneRemaining] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -59,6 +61,7 @@ const UpdateProfilePage = () => {
         });
       } catch (err) {
         toast.error('Failed to load profile data.');
+        setServiceDown(true);
       } finally {
         setFetching(false);
       }
@@ -172,6 +175,28 @@ const UpdateProfilePage = () => {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (serviceDown) {
+    return (
+      <div style={{
+        position: 'relative', overflow: 'hidden', minHeight: '100vh',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 1rem'
+      }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundImage: `url(${heroImg})`, backgroundSize: 'cover', backgroundPosition: 'center',
+          filter: 'brightness(1.1) contrast(1.1)', zIndex: -2
+        }}></div>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.5)', zIndex: -1
+        }}></div>
+        <div style={{ maxWidth: '600px', width: '95%', zIndex: 1 }}>
+          <ServiceUnavailable />
+        </div>
       </div>
     );
   }
