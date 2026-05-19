@@ -6,6 +6,13 @@
     <meta name="theme-color" content="#1a73e8" />
     <meta name="description" content="Online Voting System" />
     <title>Online Voting System</title>
+    <style>
+      /* Prevent white flash on load — background set before React renders */
+      html, body, #root {
+        background-color: #f8fafc;
+        min-height: 100%;
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
