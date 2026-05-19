@@ -14,29 +14,31 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
-  /* Fixed background for the entire app — never changes regardless of page or service availability */
-  background-color: #f8fafc;
   min-height: 100%;
+  background-color: #0f172a;
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f8fafc;
+  background-color: #0f172a;
   color: var(--text-main);
   line-height: 1.5;
   min-height: 100vh;
 }
 
-/* Ensure the root div never shows white — always inherits the body background */
 #root {
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #0f172a;
 }
 
 .container {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1.5rem;
+  /* Ensure admin/voter content pages always have the light background */
+  background-color: var(--bg-color);
+  min-height: calc(100vh - 72px);
+  border-radius: 0;
 }
 
 /* Typography */
