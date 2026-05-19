@@ -17,9 +17,10 @@ function LandingPage() {
       display: 'flex',
       flexDirection: 'column',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      backgroundColor: '#0f172a'
     }}>
-      {/* Background Image with Ultra-Sharp Filters */}
+      {/* Background Image */}
       <div style={{
         position: 'absolute',
         top: 0,
@@ -30,10 +31,10 @@ function LandingPage() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         filter: 'brightness(1.1) contrast(1.1) saturate(1.1)',
-        zIndex: -2
+        zIndex: 0
       }}></div>
       
-      {/* Lighter Gradient Overlay for Maximum Image Clarity */}
+      {/* Gradient Overlay */}
       <div style={{
         position: 'absolute',
         top: 0,
@@ -41,7 +42,7 @@ function LandingPage() {
         right: 0,
         bottom: 0,
         background: 'linear-gradient(to right, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.3) 50%, rgba(15, 23, 42, 0.1) 100%)',
-        zIndex: -1
+        zIndex: 1
       }}></div>
 
       {/* Content */}
@@ -50,7 +51,9 @@ function LandingPage() {
         display: 'flex', 
         alignItems: 'center', 
         paddingTop: '5rem',
-        paddingBottom: '5rem'
+        paddingBottom: '5rem',
+        position: 'relative',
+        zIndex: 2
       }}>
         <div style={{ maxWidth: '650px', color: 'white' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -116,7 +119,9 @@ function LandingPage() {
         color: '#f1f5f9',
         fontSize: '0.9rem',
         textAlign: 'center',
-        backdropFilter: 'blur(5px)'
+        backdropFilter: 'blur(5px)',
+        position: 'relative',
+        zIndex: 2
       }}>
         © 2026 National Election Board of Ethiopia (NEBE) Digital Initiative. All Rights Reserved.
       </div>

@@ -98,7 +98,8 @@ const ContactPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '4rem 1rem'
+      padding: '4rem 1rem',
+      backgroundColor: '#0f172a'
     }}>
       <div style={{
         position: 'absolute',
@@ -107,7 +108,7 @@ const ContactPage = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         filter: 'brightness(0.6)',
-        zIndex: -2
+        zIndex: 0
       }}></div>
       
       <div className="auth-card" style={{ 
@@ -117,7 +118,7 @@ const ContactPage = () => {
         background: 'rgba(255,255,255,0.1)', 
         border: '1px solid rgba(255,255,255,0.2)',
         padding: '3rem',
-        zIndex: 1,
+        zIndex: 2,
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '4rem',
