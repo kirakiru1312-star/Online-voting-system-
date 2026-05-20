@@ -11,7 +11,7 @@ const generateToken = (id) =>
 // @route POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, age, phone, nationalId, profession, sex, nationality, region, subCity, kebele } = req.body;
+    const { firstName, lastName, email, password, age, phone, nationalId, profession, nationality, region, subCity, kebele } = req.body;
     
     // Basic validation for mandatory unique fields
     const existingEmail = await User.findOne({ email: email.toLowerCase() });
@@ -27,7 +27,7 @@ exports.register = async (req, res) => {
     const user = await User.create({
       name: `${firstName} ${lastName}`,
       firstName, lastName, email: email.toLowerCase(), password: hashed, age, phone,
-      nationalId, profession, sex, nationality, region, subCity, kebele,
+      nationalId, profession, nationality, region, subCity, kebele,
       role: 'voter'
     });
     
@@ -136,7 +136,7 @@ exports.updateProfile = async (req, res) => {
       return res.status(403).json({ message: 'Profile cannot be updated after voting.' });
     }
 
-    const { firstName, lastName, email, age, phone, nationalId, profession, sex, nationality, region, subCity, kebele } = req.body;
+    const { firstName, lastName, email, age, phone, nationalId, profession, nationality, region, subCity, kebele } = req.body;
 
     // Check unique fields against other users
     if (email && email.toLowerCase() !== user.email) {
@@ -160,7 +160,6 @@ exports.updateProfile = async (req, res) => {
     if (phone) user.phone = phone;
     if (nationalId) user.nationalId = nationalId;
     if (profession) user.profession = profession;
-    if (sex) user.sex = sex;
     if (nationality) user.nationality = nationality;
     if (region) user.region = region;
     if (subCity) user.subCity = subCity;
