@@ -32,9 +32,6 @@ const RegisterPage = () => {
     // Letters only fields
     const lettersOnly = ['firstName', 'lastName', 'subCity', 'profession', 'nationality'];
     if (lettersOnly.includes(name) && value !== '' && !/^[A-Za-z ]+$/.test(value)) return;
-
-    // Profession restriction: reject "soldier" (case-insensitive)
-    if (name === 'profession' && value.trim().toLowerCase() === 'soldier') return;
     
     // Numbers only fields
     const numbersOnly = ['age', 'nationalId'];
@@ -70,6 +67,11 @@ const RegisterPage = () => {
       return toast.error('First and Last names must be at least 2 characters long');
     }
 
+    // Profession restriction
+    if (form.profession.trim().toLowerCase() === 'soldier') {
+      return toast.error('Soldiers are not eligible to vote.');
+    }
+
     // Password strength: Min 8, at least 1 letter, 1 number, and 1 symbol
     const hasLetter = /[a-zA-Z]/.test(form.password);
     const hasNumber = /[0-9]/.test(form.password);
@@ -81,10 +83,6 @@ const RegisterPage = () => {
 
     if (form.password !== form.confirmPassword) {
       return toast.error('Passwords do not match');
-    }
-
-    if (form.profession.trim().toLowerCase() === 'soldier') {
-      return toast.error('Profession cannot be "soldier"');
     }
 
     setLoading(true);
@@ -193,15 +191,13 @@ const RegisterPage = () => {
                   {showPassword ? '👁️' : '👁️‍🗨️'}
                 </button>
               </div>
-              {form.password && (
-                <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                  {(form.password.length >= 8 && /[a-zA-Z]/.test(form.password) && /[0-9]/.test(form.password) && /[^a-zA-Z0-9]/.test(form.password)) ? (
-                    <span style={{ color: 'green' }}>strong</span>
-                  ) : (
-                    <span style={{ color: 'red' }}>password must be &gt;= 8 characters with a letter, number, and special character</span>
-                  )}
-                </div>
-              )}
+              <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                {(form.password.length >= 8 && /[a-zA-Z]/.test(form.password) && /[0-9]/.test(form.password) && /[^a-zA-Z0-9]/.test(form.password)) ? (
+                  <span style={{ color: 'green' }}>strong</span>
+                ) : (
+                  <span style={{ color: 'red' }}>Min 8 chars with at least one letter, one number, and one special character</span>
+                )}
+              </div>
             </div>
             <div className="form-group" style={{ position: 'relative' }}>
               <label style={labelStyle}>Confirm Password</label>

@@ -76,9 +76,6 @@ const UpdateProfilePage = () => {
     const lettersOnly = ['firstName', 'lastName', 'subCity', 'profession', 'nationality'];
     if (lettersOnly.includes(name) && value !== '' && !/^[A-Za-z ]+$/.test(value)) return;
 
-    // Profession restriction: reject "soldier" (case-insensitive)
-    if (name === 'profession' && value.trim().toLowerCase() === 'soldier') return;
-
     // Numbers only fields
     const numbersOnly = ['age', 'nationalId'];
     if (numbersOnly.includes(name) && value !== '' && !/^\d+$/.test(value)) return;
@@ -117,6 +114,11 @@ const UpdateProfilePage = () => {
       return toast.error('First and Last names must be at least 2 characters long');
     }
 
+    // Profession restriction
+    if (form.profession.trim().toLowerCase() === 'soldier') {
+      return toast.error('Soldiers are not eligible to vote.');
+    }
+
     // Password validation only if the user typed something in the password field
     if (form.password) {
       const hasLetter = /[a-zA-Z]/.test(form.password);
@@ -130,10 +132,6 @@ const UpdateProfilePage = () => {
       if (form.password !== form.confirmPassword) {
         return toast.error('Passwords do not match');
       }
-    }
-
-    if (form.profession.trim().toLowerCase() === 'soldier') {
-      return toast.error('Profession cannot be "soldier"');
     }
     // === End of identical validation ===
 
@@ -314,7 +312,7 @@ const UpdateProfilePage = () => {
                   {(form.password.length >= 8 && /[a-zA-Z]/.test(form.password) && /[0-9]/.test(form.password) && /[^a-zA-Z0-9]/.test(form.password)) ? (
                     <span style={{ color: 'green' }}>strong</span>
                   ) : (
-                    <span style={{ color: 'red' }}>password must be &gt;= 8 characters with a letter, number, and special character</span>
+                    <span style={{ color: 'red' }}>Min 8 chars with at least one letter, one number, and one special character</span>
                   )}
                 </div>
               )}
