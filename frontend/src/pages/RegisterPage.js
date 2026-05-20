@@ -32,6 +32,9 @@ const RegisterPage = () => {
     // Letters only fields
     const lettersOnly = ['firstName', 'lastName', 'subCity', 'profession', 'nationality'];
     if (lettersOnly.includes(name) && value !== '' && !/^[A-Za-z ]+$/.test(value)) return;
+
+    // Profession restriction: reject "soldier" (case-insensitive)
+    if (name === 'profession' && value.trim().toLowerCase() === 'soldier') return;
     
     // Numbers only fields
     const numbersOnly = ['age', 'nationalId'];
@@ -78,6 +81,10 @@ const RegisterPage = () => {
 
     if (form.password !== form.confirmPassword) {
       return toast.error('Passwords do not match');
+    }
+
+    if (form.profession.trim().toLowerCase() === 'soldier') {
+      return toast.error('Profession cannot be "soldier"');
     }
 
     setLoading(true);
