@@ -52,6 +52,7 @@ function AdminVoters() {
                         <div><strong>Age:</strong> {voter.age}</div>
                         <div><strong>Phone:</strong> {voter.phone}</div>
                         <div><strong>Job:</strong> {voter.profession}</div>
+                        <div><strong>Sex:</strong> {voter.sex || '—'}</div>
                       </div>
                     </td>
                     <td>

@@ -16,7 +16,7 @@ const UpdateProfilePage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', password: '', confirmPassword: '',
-    age: '', nationalId: '', profession: '',
+    age: '', nationalId: '', profession: '', sex: '',
     nationality: 'Ethiopian', region: '', subCity: '', kebele: ''
   });
 
@@ -54,6 +54,7 @@ const UpdateProfilePage = () => {
           age: u.age ? String(u.age) : '',
           nationalId: u.nationalId || '',
           profession: u.profession || '',
+          sex: u.sex || '',
           nationality: u.nationality || 'Ethiopian',
           region: u.region || '',
           subCity: u.subCity || '',
@@ -381,19 +382,31 @@ const UpdateProfilePage = () => {
               <input type="text" name="profession" value={form.profession} onChange={handleChange} required style={hasVoted ? disabledInputStyle : inputStyle} disabled={hasVoted} autoComplete="off" />
             </div>
             <div className="form-group">
-              <label style={labelStyle}>Region</label>
-              <select name="region" value={form.region} onChange={handleChange} required disabled={hasVoted} style={hasVoted ? { ...disabledInputStyle, width: '100%', color: '#0f172a' } : { ...inputStyle, width: '100%', color: '#0f172a' }} autoComplete="off">
-                <option value="" style={{ color: '#0f172a' }}>Select Region</option>
-                {regions.map(r => <option key={r} value={r} style={{ color: '#0f172a' }}>{r}</option>)}
+              <label style={labelStyle}>Sex</label>
+              <select name="sex" value={form.sex} onChange={handleChange} required disabled={hasVoted} style={hasVoted ? { ...disabledInputStyle, width: '100%', color: '#0f172a' } : { ...inputStyle, width: '100%', color: form.sex ? 'white' : 'rgba(255,255,255,0.6)' }} autoComplete="off">
+                <option value="" style={{ color: '#0f172a' }}>Select Sex</option>
+                <option value="Male" style={{ color: '#0f172a' }}>Male</option>
+                <option value="Female" style={{ color: '#0f172a' }}>Female</option>
+                <option value="Intersex" style={{ color: '#0f172a' }}>Intersex</option>
               </select>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div className="form-group">
+              <label style={labelStyle}>Region</label>
+              <select name="region" value={form.region} onChange={handleChange} required disabled={hasVoted} style={hasVoted ? { ...disabledInputStyle, width: '100%', color: '#0f172a' } : { ...inputStyle, width: '100%', color: '#0f172a' }} autoComplete="off">
+                <option value="" style={{ color: '#0f172a' }}>Select Region</option>
+                {regions.map(r => <option key={r} value={r} style={{ color: '#0f172a' }}>{r}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
               <label style={labelStyle}>Wereda / Sub-City</label>
               <input type="text" name="subCity" value={form.subCity} onChange={handleChange} required style={hasVoted ? disabledInputStyle : inputStyle} disabled={hasVoted} autoComplete="off" />
             </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div className="form-group">
               <label style={labelStyle}>Kebele</label>
               <input type="text" name="kebele" value={form.kebele} onChange={handleChange} required style={hasVoted ? disabledInputStyle : inputStyle} disabled={hasVoted} autoComplete="off" />

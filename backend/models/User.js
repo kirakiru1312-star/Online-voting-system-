@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, unique: true, sparse: true },
     nationalId: { type: String, unique: true, sparse: true },
     profession: { type: String },
+    sex: { type: String, enum: ['Male', 'Female', 'Intersex'] },
     nationality: { type: String, default: 'Ethiopian' },
     region: { type: String },
     subCity: { type: String },
