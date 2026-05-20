@@ -209,8 +209,7 @@ const UpdateProfilePage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '4rem 1rem',
-      backgroundColor: '#0f172a'
+      padding: '4rem 1rem'
     }}>
       {/* Background Image Layer */}
       <div style={{
@@ -220,7 +219,7 @@ const UpdateProfilePage = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         filter: 'brightness(1.1) contrast(1.1)',
-        zIndex: 0
+        zIndex: -2
       }}></div>
 
       {/* Overlay */}
@@ -228,7 +227,7 @@ const UpdateProfilePage = () => {
         position: 'absolute',
         top: 0, left: 0, right: 0, bottom: 0,
         background: 'rgba(15, 23, 42, 0.5)',
-        zIndex: 1
+        zIndex: -1
       }}></div>
 
       <div className="auth-card" style={{
@@ -239,7 +238,7 @@ const UpdateProfilePage = () => {
         border: '1px solid rgba(255,255,255,0.4)',
         padding: '3rem',
         position: 'relative',
-        zIndex: 2,
+        zIndex: 1,
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
       }}>
         <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '1rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>

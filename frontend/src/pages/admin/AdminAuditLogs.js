@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import ServiceUnavailableMessage from '../../components/ServiceUnavailableMessage';
 
 function AdminAuditLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [serviceError, setServiceError] = useState(false);
 
   useEffect(() => {
     fetchLogs();
@@ -13,13 +11,11 @@ function AdminAuditLogs() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    setServiceError(false);
     try {
       const res = await api.get('/admin/audit-logs');
       setLogs(res.data);
     } catch (err) {
       console.error('Failed to fetch audit logs');
-      setServiceError(true);
     } finally {
       setLoading(false);
     }

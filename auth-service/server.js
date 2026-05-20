@@ -37,16 +37,7 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('[auth-service] Connected to DB: db_auth');
-    const server = app.listen(PORT, () => console.log(`[auth-service] Running on port ${PORT}`));
-    server.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        console.error(`[auth-service] ERROR: Port ${PORT} is already in use.`);
-        console.error(`[auth-service] Run: taskkill /F /IM node.exe  then restart.`);
-        process.exit(1);
-      } else {
-        throw err;
-      }
-    });
+    app.listen(PORT, () => console.log(`[auth-service] Running on port ${PORT}`));
   })
   .catch((err) => {
     console.error('[auth-service] DB connection error:', err);

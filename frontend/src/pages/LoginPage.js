@@ -110,8 +110,7 @@ const LoginPage = () => {
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#0f172a'
+      justifyContent: 'center'
     }}>
       {/* Background Image Layer */}
       <div style={{
@@ -121,7 +120,7 @@ const LoginPage = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         filter: 'brightness(1.1) contrast(1.1)',
-        zIndex: 0
+        zIndex: -2
       }}></div>
       
       {/* Lighter Overlay */}
@@ -129,7 +128,7 @@ const LoginPage = () => {
         position: 'absolute',
         top: 0, left: 0, right: 0, bottom: 0,
         background: 'rgba(15, 23, 42, 0.45)',
-        zIndex: 1
+        zIndex: -1
       }}></div>
 
       <div className="auth-card" style={{ 
@@ -138,7 +137,7 @@ const LoginPage = () => {
         border: '1px solid rgba(255,255,255,0.3)',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
         position: 'relative',
-        zIndex: 2
+        zIndex: 1
       }}>
         <h2 style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)', color: 'white' }}>Login</h2>
         <form onSubmit={handleSubmit}>
@@ -205,7 +204,7 @@ const LoginPage = () => {
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
-        <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000, backdropFilter: 'blur(5px)' }}>
+        <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(5px)' }}>
           <div className="card" style={{ maxWidth: '400px', width: '90%', padding: '2.5rem', background: 'white' }}>
             <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', color: '#1e293b' }}>Reset Password</h2>
             

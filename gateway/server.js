@@ -98,16 +98,9 @@ app.get('/', (req, res) =>
 );
 
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`[api-gateway] Running on port ${PORT}`);
   console.log(`  → auth-service    : ${AUTH}`);
   console.log(`  → election-service: ${ELECTION}`);
   console.log(`  → voting-service  : ${VOTING}`);
-});
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`[api-gateway] ERROR: Port ${PORT} is already in use.`);
-    console.error(`[api-gateway] Run: taskkill /F /IM node.exe  then restart.`);
-    process.exit(1);
-  } else { throw err; }
 });
