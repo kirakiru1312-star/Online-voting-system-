@@ -314,7 +314,7 @@ const UpdateProfilePage = () => {
                   {(form.password.length >= 8 && /[a-zA-Z]/.test(form.password) && /[0-9]/.test(form.password) && /[^a-zA-Z0-9]/.test(form.password)) ? (
                     <span style={{ color: 'green' }}>strong</span>
                   ) : (
-                    <span style={{ color: 'red' }}>password must be &gt;= 3 character and &gt;= 8 length</span>
+                    <span style={{ color: 'red' }}>password must be &gt;= 8 characters with a letter, number, and special character</span>
                   )}
                 </div>
               )}
